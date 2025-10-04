@@ -12,6 +12,7 @@ import Animated, {
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useThemeColor } from '@/hooks/use-theme-color';
 
 const { width } = Dimensions.get('window');
 
@@ -25,6 +26,9 @@ export default function WelcomeScreen() {
   const buttonsOpacity = useSharedValue(0);
   const buttonsTranslateY = useSharedValue(40);
   const backgroundScale = useSharedValue(0.8);
+  
+  const primaryColor = useThemeColor({}, 'primary');
+  const secondaryColor = useThemeColor({}, 'secondary');
 
   useEffect(() => {
     // Orchestrated animation sequence
@@ -77,7 +81,7 @@ export default function WelcomeScreen() {
         
         <View style={styles.content}>
         <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
-          <View style={styles.logoBackground}>
+          <View style={[styles.logoBackground, { backgroundColor: primaryColor, shadowColor: primaryColor }]}>
             <IconSymbol name="binoculars" size={80} color="white" />
           </View>
         </Animated.View>
@@ -99,7 +103,7 @@ export default function WelcomeScreen() {
         <Animated.View style={[styles.buttonContainer, buttonsAnimatedStyle]}>
           <Link href="/sign-up" asChild>
             <TouchableOpacity>
-              <Animated.View style={styles.primaryButton}>
+              <Animated.View style={[styles.primaryButton, { backgroundColor: primaryColor }]}>
                 <ThemedText style={styles.primaryButtonText}>Get Started</ThemedText>
               </Animated.View>
             </TouchableOpacity>
@@ -107,7 +111,7 @@ export default function WelcomeScreen() {
 
           <Link href="/sign-in" asChild>
             <TouchableOpacity>
-              <Animated.View style={styles.secondaryButton}>
+              <Animated.View style={[styles.secondaryButton, { borderColor: secondaryColor }]}>
                 <ThemedText style={styles.secondaryButtonText}>I already have an account</ThemedText>
               </Animated.View>
             </TouchableOpacity>
@@ -156,10 +160,8 @@ const styles = StyleSheet.create({
     width: 140,
     height: 140,
     borderRadius: 70,
-    backgroundColor: '#4CAF50',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#4CAF50',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 20,
@@ -188,12 +190,10 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   primaryButton: {
-    backgroundColor: '#4CAF50',
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 25,
     alignItems: 'center',
-    shadowColor: '#4CAF50',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -210,7 +210,6 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: 'rgba(0,0,0,0.1)',
   },
   secondaryButtonText: {
     fontSize: 16,

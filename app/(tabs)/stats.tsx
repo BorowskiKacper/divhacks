@@ -5,6 +5,7 @@ import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useSightings } from '@/contexts/SightingsContext';
+import { useThemeColor } from '@/hooks/use-theme-color';
 
 export default function StatsScreen() {
   const { sightings } = useSightings();
@@ -12,6 +13,8 @@ export default function StatsScreen() {
   const mySightings = sightings.filter(s => s.userId === 'you');
   const birdCount = mySightings.filter(s => s.type === 'Bird').length;
   const mammalCount = mySightings.filter(s => s.type === 'Mammal').length;
+  
+  const primaryColor = useThemeColor({}, 'primary');
 
   const calculateStreak = () => {
     if (mySightings.length === 0) return 0;
@@ -75,7 +78,7 @@ export default function StatsScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
-            <IconSymbol name="binoculars" size={32} color="#4CAF50" />
+            <IconSymbol name="binoculars" size={32} color={primaryColor} />
             <ThemedText type="defaultSemiBold" style={styles.statNumber}>
               {mySightings.length}
             </ThemedText>
@@ -173,7 +176,7 @@ export default function StatsScreen() {
                     <IconSymbol 
                       name={sighting.type === 'Bird' ? 'bird' : 'hare'} 
                       size={20} 
-                      color="#4CAF50" 
+                      color={primaryColor} 
                     />
                   </View>
                   <View style={styles.activityDetails}>
@@ -184,7 +187,7 @@ export default function StatsScreen() {
                       {sighting.timestamp.toLocaleDateString()}
                     </ThemedText>
                   </View>
-                  <View style={styles.activityType}>
+                  <View style={[styles.activityType, { backgroundColor: primaryColor }]}>
                     <ThemedText style={styles.activityTypeText}>
                       {sighting.type}
                     </ThemedText>
@@ -330,7 +333,6 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   activityType: {
-    backgroundColor: '#4CAF50',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,

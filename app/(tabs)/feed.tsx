@@ -5,10 +5,13 @@ import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useSightings } from '@/contexts/SightingsContext';
+import { useThemeColor } from '@/hooks/use-theme-color';
 
 export default function FeedScreen() {
   const { sightings } = useSightings();
   const insets = useSafeAreaInsets();
+  const primaryColor = useThemeColor({}, 'primary');
+  const secondaryColor = useThemeColor({}, 'secondary');
 
   const formatTimeAgo = (timestamp: Date) => {
     const now = new Date();
@@ -49,7 +52,7 @@ export default function FeedScreen() {
                     <IconSymbol 
                       name="person.fill" 
                       size={20} 
-                      color={sighting.userId === 'you' ? '#4CAF50' : '#666'} 
+                      color={sighting.userId === 'you' ? primaryColor : secondaryColor} 
                     />
                   </View>
                   <View>
@@ -61,7 +64,7 @@ export default function FeedScreen() {
                     </ThemedText>
                   </View>
                 </View>
-                <View style={styles.typeTag}>
+                <View style={[styles.typeTag, { backgroundColor: primaryColor }]}>
                   <ThemedText style={styles.typeText}>{sighting.type}</ThemedText>
                 </View>
               </View>
@@ -71,7 +74,7 @@ export default function FeedScreen() {
                   <IconSymbol 
                     name={sighting.type === 'Bird' ? 'bird' : 'hare'} 
                     size={40} 
-                    color="#4CAF50" 
+                    color={primaryColor} 
                   />
                 </View>
                 <View style={styles.sightingDetails}>
@@ -181,7 +184,6 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   typeTag: {
-    backgroundColor: '#4CAF50',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,

@@ -5,25 +5,34 @@
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+// Figma color variables
+const darkGreen = '#036400';
+const lightGreen = '#849A70';
+const lightText = '#DADFBC';
+const darkText = '#211717';
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    text: darkText, // Dark Text for light mode
+    background: lightText, // Light Text as background
+    tint: darkGreen, // Dark Green as primary tint
+    icon: darkText, // Dark Text for icons
+    tabIconDefault: lightGreen, // Light Green for default tab icons
+    tabIconSelected: darkGreen, // Dark Green for selected tab icons
+    primary: darkGreen, // Dark Green for primary elements
+    secondary: lightGreen, // Light Green for secondary elements
+    accent: lightText, // Light Text for accents
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    text: lightText, // Light Text for dark mode
+    background: darkGreen, // Dark Green as background
+    tint: lightText, // Light Text as primary tint
+    icon: lightText, // Light Text for icons
+    tabIconDefault: lightGreen, // Light Green for default tab icons
+    tabIconSelected: lightText, // Light Text for selected tab icons
+    primary: lightText, // Light Text for primary elements
+    secondary: lightGreen, // Light Green for secondary elements
+    accent: darkGreen, // Dark Green for accents
   },
 };
 

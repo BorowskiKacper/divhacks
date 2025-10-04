@@ -7,6 +7,7 @@ import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useSightings } from '@/contexts/SightingsContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useThemeColor } from '@/hooks/use-theme-color';
 
 export default function ProfileScreen() {
   const { sightings } = useSightings();
@@ -15,6 +16,9 @@ export default function ProfileScreen() {
   const mySightings = sightings.filter(s => s.userId === 'you');
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [locationSharing, setLocationSharing] = React.useState(true);
+  
+  const primaryColor = useThemeColor({}, 'primary');
+  const secondaryColor = useThemeColor({}, 'secondary');
 
   const profileStats = {
     totalSpots: mySightings.length,
@@ -46,10 +50,10 @@ export default function ProfileScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.profileHeader}>
           <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              <IconSymbol name="person.fill" size={48} color="#4CAF50" />
+            <View style={[styles.avatar, { borderColor: primaryColor }]}>
+              <IconSymbol name="person.fill" size={48} color={primaryColor} />
             </View>
-            <TouchableOpacity style={styles.editButton}>
+            <TouchableOpacity style={[styles.editButton, { backgroundColor: primaryColor }]}>
               <IconSymbol name="pencil" size={16} color="white" />
             </TouchableOpacity>
           </View>
@@ -96,12 +100,12 @@ export default function ProfileScreen() {
                 <IconSymbol name="bell.fill" size={20} color="#FF9800" />
                 <ThemedText style={styles.settingTitle}>Push Notifications</ThemedText>
               </View>
-              <Switch
-                value={notificationsEnabled}
-                onValueChange={setNotificationsEnabled}
-                trackColor={{ false: '#767577', true: '#4CAF50' }}
-                thumbColor={notificationsEnabled ? '#ffffff' : '#f4f3f4'}
-              />
+                <Switch
+                  value={notificationsEnabled}
+                  onValueChange={setNotificationsEnabled}
+                  trackColor={{ false: '#767577', true: primaryColor }}
+                  thumbColor={notificationsEnabled ? '#ffffff' : '#f4f3f4'}
+                />
             </View>
             
             <View style={styles.settingDivider} />
@@ -111,12 +115,12 @@ export default function ProfileScreen() {
                 <IconSymbol name="location.fill" size={20} color="#2196F3" />
                 <ThemedText style={styles.settingTitle}>Location Sharing</ThemedText>
               </View>
-              <Switch
-                value={locationSharing}
-                onValueChange={setLocationSharing}
-                trackColor={{ false: '#767577', true: '#4CAF50' }}
-                thumbColor={locationSharing ? '#ffffff' : '#f4f3f4'}
-              />
+                <Switch
+                  value={locationSharing}
+                  onValueChange={setLocationSharing}
+                  trackColor={{ false: '#767577', true: primaryColor }}
+                  thumbColor={locationSharing ? '#ffffff' : '#f4f3f4'}
+                />
             </View>
           </View>
         </View>
@@ -131,8 +135,8 @@ export default function ProfileScreen() {
               <View key={index}>
                 <TouchableOpacity style={styles.menuItem}>
                   <View style={styles.menuLeft}>
-                    <View style={styles.menuIcon}>
-                      <IconSymbol name={item.icon} size={20} color="#4CAF50" />
+                    <View style={[styles.menuIcon, { backgroundColor: `${primaryColor}20` }]}>
+                      <IconSymbol name={item.icon} size={20} color={primaryColor} />
                     </View>
                     <View>
                       <ThemedText style={styles.menuTitle}>{item.title}</ThemedText>
@@ -188,7 +192,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
-    borderColor: '#4CAF50',
   },
   editButton: {
     position: 'absolute',
@@ -197,7 +200,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#4CAF50',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -283,7 +285,6 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(76, 175, 80, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,

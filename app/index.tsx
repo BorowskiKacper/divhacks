@@ -10,14 +10,18 @@ import Animated, {
   withDelay 
 } from 'react-native-reanimated';
 import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '@/contexts/AuthContext';
+import { useThemeColor } from '@/hooks/use-theme-color';
 
 export default function Index() {
   const { user } = useAuth();
   const logoScale = useSharedValue(0);
   const logoOpacity = useSharedValue(0);
   const pulseScale = useSharedValue(1);
+  const backgroundColor = useThemeColor({}, 'background');
+  const primaryColor = useThemeColor({}, 'primary');
 
   useEffect(() => {
     // Initial loading animation
@@ -55,10 +59,10 @@ export default function Index() {
   }));
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right', 'bottom']}>
+    <SafeAreaView style={[styles.container, { backgroundColor }]} edges={['top', 'left', 'right', 'bottom']}>
       <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
         <Animated.View style={[styles.pulseContainer, pulseAnimatedStyle]}>
-          <View style={styles.logoBackground}>
+          <View style={[styles.logoBackground, { backgroundColor: primaryColor }]}>
             <IconSymbol name="binoculars" size={60} color="white" />
           </View>
         </Animated.View>
@@ -78,7 +82,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#4CAF50',
   },
   logoContainer: {
     alignItems: 'center',
