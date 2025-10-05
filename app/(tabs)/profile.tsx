@@ -97,8 +97,8 @@ export default function ProfileScreen() {
           <View style={styles.settingsCard}>
             <View style={styles.settingItem}>
               <View style={styles.settingLeft}>
-                <IconSymbol name="bell.fill" size={20} color="#FF9800" />
-                <ThemedText style={styles.settingTitle}>Push Notifications</ThemedText>
+                <IconSymbol name="bell.fill" size={20} color="#B38F00" />
+                <ThemedText style={[styles.settingTitle, { color: darkGreen }]}>Push Notifications</ThemedText>
               </View>
                 <Switch
                   value={notificationsEnabled}
@@ -112,8 +112,8 @@ export default function ProfileScreen() {
             
             <View style={styles.settingItem}>
               <View style={styles.settingLeft}>
-                <IconSymbol name="location.fill" size={20} color="#2196F3" />
-                <ThemedText style={styles.settingTitle}>Location Sharing</ThemedText>
+                <IconSymbol name="location.fill" size={20} color="#0A5CA8" />
+                <ThemedText style={[styles.settingTitle, { color: darkGreen }]}>Location Sharing</ThemedText>
               </View>
                 <Switch
                   value={locationSharing}
@@ -135,15 +135,15 @@ export default function ProfileScreen() {
               <View key={index}>
                 <TouchableOpacity style={styles.menuItem}>
                   <View style={styles.menuLeft}>
-                    <View style={[styles.menuIcon, { backgroundColor: `${primaryColor}20` }]}>
-                      <IconSymbol name={item.icon} size={20} color={primaryColor} />
+                    <View style={[styles.menuIcon, { backgroundColor: primaryColor }]}>
+                      <IconSymbol name={item.icon} size={20} color={lightText} />
                     </View>
                     <View>
-                      <ThemedText style={styles.menuTitle}>{item.title}</ThemedText>
-                      <ThemedText style={styles.menuSubtitle}>{item.subtitle}</ThemedText>
+                      <ThemedText style={[styles.menuTitle, { color: darkText }]}>{item.title}</ThemedText>
+                      <ThemedText style={[styles.menuSubtitle, { color: darkText }]}>{item.subtitle}</ThemedText>
                     </View>
                   </View>
-                  <IconSymbol name="chevron.right" size={16} color="#ccc" />
+                  <IconSymbol name="chevron.right" size={16} color={darkText} />
                 </TouchableOpacity>
                 {index < menuItems.length - 1 && <View style={styles.menuDivider} />}
               </View>
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+    backgroundColor: lightGreen,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   settingsCard: {
-    backgroundColor: 'rgba(0,0,0,0.02)',
+    backgroundColor: lightText,
     borderRadius: 12,
     padding: 16,
   },
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   menuCard: {
-    backgroundColor: 'rgba(0,0,0,0.02)',
+    backgroundColor: lightGreen,
     borderRadius: 12,
     padding: 16,
   },

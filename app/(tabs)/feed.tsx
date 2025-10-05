@@ -12,6 +12,8 @@ export default function FeedScreen() {
   const insets = useSafeAreaInsets();
   const primaryColor = useThemeColor({}, 'primary');
   const secondaryColor = useThemeColor({}, 'secondary');
+  const textColor = useThemeColor({}, 'text');
+  const backgroundColor = useThemeColor({}, 'background');
 
   const formatTimeAgo = (timestamp: Date) => {
     const now = new Date();
@@ -56,16 +58,16 @@ export default function FeedScreen() {
                     />
                   </View>
                   <View>
-                    <ThemedText style={styles.username}>
+                    <ThemedText style={[styles.username, { color: primaryColor }]}>
                       {sighting.userId === 'you' ? 'You' : sighting.userId}
                     </ThemedText>
-                    <ThemedText style={styles.timeAgo}>
+                    <ThemedText style={[styles.timeAgo, { color: primaryColor }]}>
                       {formatTimeAgo(sighting.timestamp)}
                     </ThemedText>
                   </View>
                 </View>
                 <View style={[styles.typeTag, { backgroundColor: primaryColor }]}>
-                  <ThemedText style={styles.typeText}>{sighting.type}</ThemedText>
+                  <ThemedText style={[styles.typeText, { color: textColor }]}>{sighting.type}</ThemedText>
                 </View>
               </View>
 
@@ -74,16 +76,16 @@ export default function FeedScreen() {
                   <IconSymbol 
                     name={sighting.type === 'Bird' ? 'bird' : 'hare'} 
                     size={40} 
-                    color={primaryColor} 
+                    color={textColor} 
                   />
                 </View>
                 <View style={styles.sightingDetails}>
-                  <ThemedText type="defaultSemiBold" style={styles.animalName}>
+                  <ThemedText type="defaultSemiBold" style={[styles.animalName, { color: primaryColor }]}>
                     {sighting.name}
                   </ThemedText>
                   <View style={styles.locationInfo}>
-                    <IconSymbol name="location" size={14} color="#666" />
-                    <ThemedText style={styles.locationText}>
+                    <IconSymbol name="location" size={14} color={primaryColor} />
+                    <ThemedText style={[styles.locationText, { color: primaryColor }]}>
                       {sighting.latitude.toFixed(4)}, {sighting.longitude.toFixed(4)}
                     </ThemedText>
                   </View>
@@ -92,16 +94,16 @@ export default function FeedScreen() {
 
               <View style={styles.feedActions}>
                 <TouchableOpacity style={styles.actionButton}>
-                  <IconSymbol name="heart" size={18} color="#666" />
-                  <ThemedText style={styles.actionText}>Like</ThemedText>
+                  <IconSymbol name="heart" size={18} color={primaryColor} />
+                  <ThemedText style={[styles.actionText, { color: primaryColor }]}>Like</ThemedText>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionButton}>
-                  <IconSymbol name="location" size={18} color="#666" />
-                  <ThemedText style={styles.actionText}>View on Map</ThemedText>
+                  <IconSymbol name="location" size={18} color={primaryColor} />
+                  <ThemedText style={[styles.actionText, { color: primaryColor }]}>View on Map</ThemedText>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionButton}>
-                  <IconSymbol name="square.and.arrow.up" size={18} color="#666" />
-                  <ThemedText style={styles.actionText}>Share</ThemedText>
+                  <IconSymbol name="square.and.arrow.up" size={18} color={primaryColor} />
+                  <ThemedText style={[styles.actionText, { color: primaryColor }]}>Share</ThemedText>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
@@ -155,7 +157,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   feedItem: {
-    backgroundColor: 'rgba(0,0,0,0.02)',
+    backgroundColor: lightGreen,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -208,7 +210,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 8,
-    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+    backgroundColor: darkGreen,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,

@@ -102,50 +102,50 @@ export default function StatsScreen() {
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
             <IconSymbol name="binoculars" size={32} color={primaryColor} />
-            <ThemedText type="defaultSemiBold" style={styles.statNumber}>
+            <ThemedText type="defaultSemiBold" style={[styles.statNumber, { color: darkText }]}>
               {mySightings.length}
             </ThemedText>
-            <ThemedText style={styles.statLabel}>Total Spotted</ThemedText>
+            <ThemedText style={[styles.statLabel, { color: darkText }]}>Total Spotted</ThemedText>
           </View>
 
           <View style={styles.statCard}>
-            <IconSymbol name="bird" size={32} color="#2196F3" />
-            <ThemedText type="defaultSemiBold" style={styles.statNumber}>
+            <IconSymbol name="bird" size={32} color="#0A5CA8" />
+            <ThemedText type="defaultSemiBold" style={[styles.statNumber, { color: darkText }]}>
               {birdCount}
             </ThemedText>
-            <ThemedText style={styles.statLabel}>Birds</ThemedText>
+            <ThemedText style={[styles.statLabel, { color: darkText }]}>Birds</ThemedText>
           </View>
 
           <View style={styles.statCard}>
-            <IconSymbol name="hare" size={32} color="#FF9800" />
-            <ThemedText type="defaultSemiBold" style={styles.statNumber}>
+            <IconSymbol name="hare" size={32} color="#C96B00" />
+            <ThemedText type="defaultSemiBold" style={[styles.statNumber, { color: darkText }]}>
               {mammalCount}
             </ThemedText>
-            <ThemedText style={styles.statLabel}>Mammals</ThemedText>
+            <ThemedText style={[styles.statLabel, { color: darkText }]}>Mammals</ThemedText>
           </View>
 
           <View style={styles.statCard}>
-            <IconSymbol name="flame" size={32} color="#F44336" />
-            <ThemedText type="defaultSemiBold" style={styles.statNumber}>
+            <IconSymbol name="flame" size={32} color="#B52014" />
+            <ThemedText type="defaultSemiBold" style={[styles.statNumber, { color: darkText }]}>
               {calculateStreak()}
             </ThemedText>
-            <ThemedText style={styles.statLabel}>Day Streak</ThemedText>
+            <ThemedText style={[styles.statLabel, { color: darkText }]}>Day Streak</ThemedText>
           </View>
 
           <View style={styles.statCard}>
-            <IconSymbol name="brain.head.profile" size={32} color="#9C27B0" />
-            <ThemedText type="defaultSemiBold" style={styles.statNumber}>
+            <IconSymbol name="brain.head.profile" size={32} color="#5A1176" />
+            <ThemedText type="defaultSemiBold" style={[styles.statNumber, { color: darkText }]}>
               {averageConfidence}%
             </ThemedText>
-            <ThemedText style={styles.statLabel}>Avg AI Confidence</ThemedText>
+            <ThemedText style={[styles.statLabel, { color: darkText }]}>Avg AI Confidence</ThemedText>
           </View>
 
           <View style={styles.statCard}>
-            <IconSymbol name="star.fill" size={32} color="#FFD700" />
-            <ThemedText type="defaultSemiBold" style={styles.statNumber}>
+            <IconSymbol name="star.fill" size={32} color="#B38F00" />
+            <ThemedText type="defaultSemiBold" style={[styles.statNumber, { color: darkText }]}>
               {rareSightings}
             </ThemedText>
-            <ThemedText style={styles.statLabel}>Rare Finds</ThemedText>
+            <ThemedText style={[styles.statLabel, { color: darkText }]}>Rare Finds</ThemedText>
           </View>
         </View>
 
@@ -210,24 +210,24 @@ export default function StatsScreen() {
           ) : (
             <View style={styles.activityList}>
               {mySightings.slice(0, 5).map((sighting) => (
-                <View key={sighting.id} style={styles.activityItem}>
+                <View key={sighting.id} style={[styles.activityItem, { backgroundColor: lightGreen }]}>
                   <View style={styles.activityIcon}>
                     <IconSymbol 
                       name={sighting.type === 'Bird' ? 'bird' : 'hare'} 
                       size={20} 
-                      color={primaryColor} 
+                      color={lightText} 
                     />
                   </View>
                   <View style={styles.activityDetails}>
-                    <ThemedText type="defaultSemiBold">
+                    <ThemedText type="defaultSemiBold" style={{ color: darkText }}>
                       {sighting.name}
                     </ThemedText>
-                    <ThemedText style={styles.activityTime}>
+                    <ThemedText style={[styles.activityTime, { color: darkText }]}>
                       {sighting.timestamp.toLocaleDateString()}
                     </ThemedText>
                   </View>
-                  <View style={[styles.activityType, { backgroundColor: primaryColor }]}>
-                    <ThemedText style={styles.activityTypeText}>
+                  <View style={[styles.activityType, { backgroundColor: darkText }]}>
+                    <ThemedText style={[styles.activityTypeText, { color: lightGreen }]}>
                       {sighting.type}
                     </ThemedText>
                   </View>
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
   },
   statCard: {
     width: '48%',
-    backgroundColor: 'rgba(0,0,0,0.02)',
+    backgroundColor: lightText,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+    backgroundColor: darkGreen,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
