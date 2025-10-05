@@ -81,6 +81,12 @@ export default function MapScreen() {
   );
 }
 
+// Color constants for styling
+const darkGreen = '#036400';
+const lightGreen = '#849A70';
+const lightText = '#DADFBC';
+const darkText = '#211717';
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -13,6 +13,7 @@ import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '@/contexts/AuthContext';
+import { useThemeColor } from '@/hooks/use-theme-color';
 
 export default function SignUpScreen() {
   const [email, setEmail] = useState('');
@@ -32,6 +33,11 @@ export default function SignUpScreen() {
   const buttonOpacity = useSharedValue(0);
   const loadingRotation = useSharedValue(0);
   const successScale = useSharedValue(0);
+
+  const backgroundColor = useThemeColor({}, 'background');
+  const primaryColor = useThemeColor({}, 'primary');
+  const secondaryColor = useThemeColor({}, 'secondary');
+  const textColor = useThemeColor({}, 'text');
 
   useEffect(() => {
     // Entry animations
@@ -139,17 +145,17 @@ export default function SignUpScreen() {
             <Animated.View style={[styles.header, headerAnimatedStyle]}>
               <Link href="/welcome" asChild>
                 <TouchableOpacity style={styles.backButton}>
-                  <IconSymbol name="chevron.left" size={24} color="#4CAF50" />
+                  <IconSymbol name="chevron.left" size={24} color={textColor} />
                 </TouchableOpacity>
               </Link>
               
               <Animated.View style={[styles.logoContainer, successAnimatedStyle]}>
                 <View style={styles.logoBackground}>
-                  <IconSymbol name="binoculars" size={40} color="white" />
+                  <IconSymbol name="binoculars" size={40} color={primaryColor} />
                 </View>
               </Animated.View>
 
-              <ThemedText type="title" style={styles.title}>
+              <ThemedText type="title" style={[styles.title, { color: textColor }]}>
                 Join Findr
               </ThemedText>
               <ThemedText style={styles.subtitle}>
@@ -160,11 +166,11 @@ export default function SignUpScreen() {
             <Animated.View style={[styles.form, formAnimatedStyle]}>
               <View style={styles.inputContainer}>
                 <View style={styles.inputWrapper}>
-                  <IconSymbol name="envelope" size={20} color="#999" style={styles.inputIcon} />
+                  <IconSymbol name="envelope" size={20} color= {primaryColor} style={styles.inputIcon} />
                   <TextInput
                     style={styles.textInput}
                     placeholder="Email address"
-                    placeholderTextColor="#999"
+                    placeholderTextColor={primaryColor}
                     value={email}
                     onChangeText={setEmail}
                     keyboardType="email-address"
@@ -176,11 +182,11 @@ export default function SignUpScreen() {
 
               <View style={styles.inputContainer}>
                 <View style={styles.inputWrapper}>
-                  <IconSymbol name="person" size={20} color="#999" style={styles.inputIcon} />
+                  <IconSymbol name="person" size={20} color={primaryColor} style={styles.inputIcon} />
                   <TextInput
                     style={styles.textInput}
                     placeholder="Username"
-                    placeholderTextColor="#999"
+                    placeholderTextColor={primaryColor}
                     value={username}
                     onChangeText={setUsername}
                     autoCapitalize="none"
@@ -191,11 +197,11 @@ export default function SignUpScreen() {
 
               <View style={styles.inputContainer}>
                 <View style={styles.inputWrapper}>
-                  <IconSymbol name="lock" size={20} color="#999" style={styles.inputIcon} />
+                  <IconSymbol name="lock" size={20} color={primaryColor} style={styles.inputIcon} />
                   <TextInput
                     style={[styles.textInput, styles.passwordInput]}
                     placeholder="Password"
-                    placeholderTextColor="#999"
+                    placeholderTextColor={primaryColor}
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry={!isPasswordVisible}
@@ -208,7 +214,7 @@ export default function SignUpScreen() {
                     <IconSymbol 
                       name={isPasswordVisible ? "eye.slash" : "eye"} 
                       size={20} 
-                      color="#999" 
+                      color={primaryColor} 
                     />
                   </TouchableOpacity>
                 </View>
@@ -216,11 +222,11 @@ export default function SignUpScreen() {
 
               <View style={styles.inputContainer}>
                 <View style={styles.inputWrapper}>
-                  <IconSymbol name="lock" size={20} color="#999" style={styles.inputIcon} />
+                  <IconSymbol name="lock" size={20} color={primaryColor} style={styles.inputIcon} />
                   <TextInput
                     style={[styles.textInput, styles.passwordInput]}
                     placeholder="Confirm password"
-                    placeholderTextColor="#999"
+                    placeholderTextColor={primaryColor}
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
                     secureTextEntry={!isConfirmPasswordVisible}
@@ -233,7 +239,7 @@ export default function SignUpScreen() {
                     <IconSymbol 
                       name={isConfirmPasswordVisible ? "eye.slash" : "eye"} 
                       size={20} 
-                      color="#999" 
+                      color={primaryColor} 
                     />
                   </TouchableOpacity>
                 </View>
@@ -241,10 +247,7 @@ export default function SignUpScreen() {
 
               <View style={styles.termsContainer}>
                 <ThemedText style={styles.termsText}>
-                  By signing up, you agree to our{' '}
-                  <ThemedText style={styles.termsLink}>Terms of Service</ThemedText>
-                  {' '}and{' '}
-                  <ThemedText style={styles.termsLink}>Privacy Policy</ThemedText>
+                  By signing up, you agree to our Terms of Service and Privacy Policy
                 </ThemedText>
               </View>
             </Animated.View>
@@ -257,17 +260,17 @@ export default function SignUpScreen() {
               >
                 {isLoading ? (
                   <Animated.View style={loadingAnimatedStyle}>
-                    <IconSymbol name="arrow.clockwise" size={24} color="white" />
+                    <IconSymbol name="arrow.clockwise" size={24} color={textColor} />
                   </Animated.View>
                 ) : (
-                  <ThemedText style={styles.signUpButtonText}>
+                  <ThemedText style={[styles.signUpButtonText, { color: primaryColor }]}>
                     Create Account
                   </ThemedText>
                 )}
               </TouchableOpacity>
 
               <View style={styles.signInPrompt}>
-                <ThemedText style={styles.signInPromptText}>
+                <ThemedText style={[styles.signInPromptText, {color: textColor}]}>
                   Already have an account?{' '}
                 </ThemedText>
                 <Link href="/sign-in" asChild>
@@ -286,6 +289,12 @@ export default function SignUpScreen() {
     </SafeAreaView>
   );
 }
+
+// Color constants for styling
+const darkGreen = '#036400';
+const lightGreen = '#849A70';
+const lightText = '#DADFBC';
+const darkText = '#211717';
 
 const styles = StyleSheet.create({
   container: {
@@ -352,7 +361,7 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.03)',
+    backgroundColor: lightGreen,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.1)',
@@ -365,7 +374,7 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     fontSize: 16,
-    color: '#333',
+    color: darkText,
   },
   passwordInput: {
     paddingRight: 0,
@@ -379,7 +388,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   termsText: {
-    fontSize: 12,
+    marginTop: 16,
+    fontSize: 16,
     opacity: 0.7,
     textAlign: 'center',
     lineHeight: 18,
@@ -392,7 +402,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   signUpButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: lightGreen,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -400,7 +410,7 @@ const styles = StyleSheet.create({
     height: 56,
     shadowColor: '#4CAF50',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0,
     shadowRadius: 8,
     elevation: 5,
     marginBottom: 24,
@@ -424,7 +434,7 @@ const styles = StyleSheet.create({
   },
   signInLink: {
     fontSize: 16,
-    color: '#4CAF50',
+    color: lightText,
     fontWeight: 'bold',
   },
 });

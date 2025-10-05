@@ -37,7 +37,7 @@ export default function FeedScreen() {
       <ScrollView style={styles.feedContainer} showsVerticalScrollIndicator={false}>
         {sightings.length === 0 ? (
           <View style={styles.emptyState}>
-            <IconSymbol name="binoculars" size={64} color="#ccc" />
+            <IconSymbol name="binoculars" size={64} color={primaryColor} />
             <ThemedText style={styles.emptyText}>No sightings yet</ThemedText>
             <ThemedText style={styles.emptySubtext}>
               Be the first to spot an animal!
@@ -111,6 +111,12 @@ export default function FeedScreen() {
     </ThemedView>
   );
 }
+
+// Color constants for styling
+const darkGreen = '#036400';
+const lightGreen = '#849A70';
+const lightText = '#DADFBC';
+const darkText = '#211717';
 
 const styles = StyleSheet.create({
   container: {
