@@ -245,8 +245,9 @@ export class UserService {
         .eq('is_active', true)
         .single();
 
-      // If not found by ID, try to find by email (for local-only users)
-      if (error && error.code === 'PGRST116') { // No rows returned
+      // If not found by ID or invalid UUID format, try to find by email (for local-only users)
+      // Error codes: 'PGRST116' = No rows returned, '22P02' = Invalid UUID syntax
+      if (error && (error.code === 'PGRST116' || error.code === '22P02')) {
         const { data: emailData, error: emailError } = await supabase
           .from('users')
           .select('id, email, username, created_at')

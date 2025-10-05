@@ -176,12 +176,11 @@ export const SightingsProvider: React.FC<SightingsProviderProps> = ({ children }
       setIsLoading(true);
       setError(null);
       
-      // Use the actual logged-in user's ID, fallback to 'you' if no user
-      const userId = user?.id || 'you';
-      const userSightings = await supabaseService.getSightingsByUser(userId);
+      // Fetch ALL sightings from all users (sorted by most recent first)
+      const allSightings = await supabaseService.getAllSightings();
       
       // Fetch usernames for all sightings
-      const sightingsWithUsernames = await fetchUsernamesForSightings(userSightings);
+      const sightingsWithUsernames = await fetchUsernamesForSightings(allSightings);
       setSightings(sightingsWithUsernames);
     } catch (err) {
       console.error('Error refreshing sightings:', err);
@@ -198,10 +197,9 @@ export const SightingsProvider: React.FC<SightingsProviderProps> = ({ children }
   };
 
   // Load sightings on mount and when user changes
+  // Load sightings on mount and when user changes
   useEffect(() => {
-    if (user) {
-      refreshSightings();
-    }
+    refreshSightings();
   }, [user]);
 
   return (
