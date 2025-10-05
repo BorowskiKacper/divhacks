@@ -34,6 +34,12 @@ export function ThemedText({
   );
 }
 
+// Color constants for styling
+const darkGreen = '#023800';
+const lightGreen = '#95AC8B';
+const lightText = '#DADFBC';
+const darkText = '#211717';
+
 const styles = StyleSheet.create({
   default: {
     fontSize: 16,

@@ -13,12 +13,16 @@ import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '@/contexts/AuthContext';
+import { useThemeColor } from '@/hooks/use-theme-color';
 
 export default function SignInScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const { signIn, isLoading } = useAuth();
+
+  const textColor = useThemeColor({}, 'text');
+  const primaryColor = useThemeColor({}, 'primary');
 
   // Animation values
   const headerOpacity = useSharedValue(0);
@@ -95,13 +99,13 @@ export default function SignInScreen() {
           <Animated.View style={[styles.header, headerAnimatedStyle]}>
             <Link href="/welcome" asChild>
               <TouchableOpacity style={styles.backButton}>
-                <IconSymbol name="chevron.left" size={24} color="#4CAF50" />
+                <IconSymbol name="chevron.left" size={24} color={textColor} />
               </TouchableOpacity>
             </Link>
             
             <View style={styles.logoContainer}>
               <View style={styles.logoBackground}>
-                <IconSymbol name="binoculars" size={40} color="white" />
+                <IconSymbol name="binoculars" size={40} color={primaryColor} />
               </View>
             </View>
 
@@ -116,11 +120,11 @@ export default function SignInScreen() {
           <Animated.View style={[styles.form, formAnimatedStyle]}>
             <View style={styles.inputContainer}>
               <View style={styles.inputWrapper}>
-                <IconSymbol name="envelope" size={20} color="#999" style={styles.inputIcon} />
+                <IconSymbol name="envelope" size={20} color={primaryColor} style={styles.inputIcon} />
                 <TextInput
                   style={styles.textInput}
                   placeholder="Email address"
-                  placeholderTextColor="#999"
+                  placeholderTextColor={primaryColor}
                   value={email}
                   onChangeText={setEmail}
                   keyboardType="email-address"
@@ -132,11 +136,11 @@ export default function SignInScreen() {
 
             <View style={styles.inputContainer}>
               <View style={styles.inputWrapper}>
-                <IconSymbol name="lock" size={20} color="#999" style={styles.inputIcon} />
+                <IconSymbol name="lock" size={20} color={primaryColor} style={styles.inputIcon} />
                 <TextInput
                   style={[styles.textInput, styles.passwordInput]}
                   placeholder="Password"
-                  placeholderTextColor="#999"
+                  placeholderTextColor={primaryColor}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!isPasswordVisible}
@@ -149,7 +153,7 @@ export default function SignInScreen() {
                   <IconSymbol 
                     name={isPasswordVisible ? "eye.slash" : "eye"} 
                     size={20} 
-                    color="#999" 
+                    color={primaryColor} 
                   />
                 </TouchableOpacity>
               </View>
@@ -170,10 +174,10 @@ export default function SignInScreen() {
             >
               {isLoading ? (
                 <Animated.View style={loadingAnimatedStyle}>
-                  <IconSymbol name="arrow.clockwise" size={24} color="white" />
+                  <IconSymbol name="arrow.clockwise" size={24} color={textColor} />
                 </Animated.View>
               ) : (
-                <ThemedText style={styles.signInButtonText}>
+                <ThemedText style={[styles.signInButtonText, { color: primaryColor }]}>
                   Sign In
                 </ThemedText>
               )}
@@ -198,6 +202,12 @@ export default function SignInScreen() {
     </SafeAreaView>
   );
 }
+
+// Color constants for styling
+const darkGreen = '#023800';
+const lightGreen = '#95AC8B';
+const lightText = '#DADFBC';
+const darkText = '#211717';
 
 const styles = StyleSheet.create({
   container: {
@@ -232,12 +242,12 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#4CAF50',
+    backgroundColor: lightGreen,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#4CAF50',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0,
     shadowRadius: 8,
     elevation: 5,
   },
@@ -252,7 +262,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   form: {
-    flex: 1,
+    marginBottom: 36,
   },
   inputContainer: {
     marginBottom: 20,
@@ -260,7 +270,7 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.03)',
+    backgroundColor: lightGreen,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: 'rgba(0,0,0,0.1)',
@@ -273,7 +283,7 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     fontSize: 16,
-    color: '#333',
+    color: darkText,
   },
   passwordInput: {
     paddingRight: 0,
@@ -283,18 +293,17 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   forgotPassword: {
-    alignSelf: 'flex-end',
-    padding: 8,
+    alignSelf: 'flex-start',
   },
   forgotPasswordText: {
-    color: '#4CAF50',
+    color: lightText,
     fontSize: 14,
   },
   buttonContainer: {
     paddingBottom: 40,
   },
   signInButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: lightGreen,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
@@ -302,7 +311,7 @@ const styles = StyleSheet.create({
     height: 56,
     shadowColor: '#4CAF50',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0,
     shadowRadius: 8,
     elevation: 5,
     marginBottom: 24,
@@ -311,7 +320,6 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   signInButtonText: {
-    color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -326,7 +334,7 @@ const styles = StyleSheet.create({
   },
   signUpLink: {
     fontSize: 16,
-    color: '#4CAF50',
+    color: lightText,
     fontWeight: 'bold',
   },
 });

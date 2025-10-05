@@ -14,14 +14,18 @@ import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useAuth } from '@/contexts/AuthContext';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { FeatherUnderline } from '@/components/ui/feather-underline';
 
 export default function Index() {
   const { user } = useAuth();
   const logoScale = useSharedValue(0);
   const logoOpacity = useSharedValue(0);
   const pulseScale = useSharedValue(1);
+
   const backgroundColor = useThemeColor({}, 'background');
   const primaryColor = useThemeColor({}, 'primary');
+  const secondaryColor = useThemeColor({}, 'secondary');
+  const textColor = useThemeColor({}, 'text');
 
   useEffect(() => {
     // Initial loading animation
@@ -62,26 +66,35 @@ export default function Index() {
     <SafeAreaView style={[styles.container, { backgroundColor }]} edges={['top', 'left', 'right', 'bottom']}>
       <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
         <Animated.View style={[styles.pulseContainer, pulseAnimatedStyle]}>
-          <View style={[styles.logoBackground, { backgroundColor: primaryColor }]}>
-            <IconSymbol name="binoculars" size={60} color="white" />
+          <View style={[styles.logoBackground, { backgroundColor: secondaryColor }]}>
+            <IconSymbol name="binoculars" size={60} color={primaryColor} />
           </View>
         </Animated.View>
-        <ThemedText type="title" style={styles.appName}>
-          Findr
-        </ThemedText>
-        <ThemedText style={styles.tagline}>
-          Discover Wildlife
-        </ThemedText>
+        <View style={styles.findrContainer}>
+          <ThemedText type="title" style={[styles.appName, { color: textColor }]}>
+            Findr
+          </ThemedText>
+          <View style={styles.featherUnderline}>
+            <FeatherUnderline width={78} height={39} color={textColor} />
+          </View>
+        </View>
       </Animated.View>
     </SafeAreaView>
   );
 }
+
+// Color constants for styling
+const darkGreen = '#023800';
+const lightGreen = '#95AC8B';
+const lightText = '#DADFBC';
+const darkText = '#211717';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 16,
   },
   logoContainer: {
     alignItems: 'center',
@@ -98,19 +111,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0,
     shadowRadius: 20,
     elevation: 10,
+  },
+  findrContainer: {
+    position: 'relative',
+    alignItems: 'center',
   },
   appName: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: 'white',
-    marginBottom: 8,
+    lineHeight: 44,
+    marginBottom: 0,
   },
-  tagline: {
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.8)',
-    textAlign: 'center',
+  featherUnderline: {
+    position: 'absolute',
+    bottom: -18,
+    right: 0,
+    transform: [{ scaleX: -1 }, { scaleY: -1 }, { rotate: '20deg' }],
   },
 });

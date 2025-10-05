@@ -13,6 +13,7 @@ import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { FeatherUnderline } from '@/components/ui/feather-underline';
 
 const { width } = Dimensions.get('window');
 
@@ -26,9 +27,13 @@ export default function WelcomeScreen() {
   const buttonsOpacity = useSharedValue(0);
   const buttonsTranslateY = useSharedValue(40);
   const backgroundScale = useSharedValue(0.8);
+  const featherTranslateX = useSharedValue(100);
+  const featherOpacity = useSharedValue(0);
   
   const primaryColor = useThemeColor({}, 'primary');
   const secondaryColor = useThemeColor({}, 'secondary');
+  const backgroundColor = useThemeColor({}, 'background');
+  const textColor = useThemeColor({}, 'text');
 
   useEffect(() => {
     // Orchestrated animation sequence
@@ -40,14 +45,17 @@ export default function WelcomeScreen() {
     );
     logoOpacity.value = withTiming(1, { duration: 600 });
 
-    titleOpacity.value = withDelay(400, withTiming(1, { duration: 800 }));
-    titleTranslateY.value = withDelay(400, withTiming(0, { duration: 800 }));
+    subtitleOpacity.value = withDelay(400, withTiming(1, { duration: 800 }));
+    subtitleTranslateY.value = withDelay(400, withTiming(0, { duration: 800 }));
 
-    subtitleOpacity.value = withDelay(800, withTiming(1, { duration: 600 }));
-    subtitleTranslateY.value = withDelay(800, withTiming(0, { duration: 600 }));
+    titleOpacity.value = withDelay(800, withTiming(1, { duration: 800 }));
+    titleTranslateY.value = withDelay(800, withTiming(0, { duration: 800 }));
 
     buttonsOpacity.value = withDelay(1200, withTiming(1, { duration: 600 }));
     buttonsTranslateY.value = withDelay(1200, withTiming(0, { duration: 600 }));
+
+    featherOpacity.value = withDelay(1400, withTiming(1, { duration: 600 }));
+    featherTranslateX.value = withDelay(1400, withTiming(0, { duration: 800 }));
   }, []);
 
   const logoAnimatedStyle = useAnimatedStyle(() => ({
@@ -74,6 +82,16 @@ export default function WelcomeScreen() {
     transform: [{ scale: backgroundScale.value }],
   }));
 
+  const featherAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: featherOpacity.value,
+    transform: [
+      { translateX: featherTranslateX.value },
+      { scaleX: -1 },
+      { scaleY: -1 },
+      { rotate: '20deg' }
+    ],
+  }));
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <ThemedView style={styles.innerContainer}>
@@ -81,16 +99,18 @@ export default function WelcomeScreen() {
         
         <View style={styles.content}>
         <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
-          <View style={[styles.logoBackground, { backgroundColor: primaryColor, shadowColor: primaryColor }]}>
-            <IconSymbol name="binoculars" size={80} color="white" />
+          <View style={[styles.logoBackground, { backgroundColor: secondaryColor, shadowColor: primaryColor }]}>
+            <IconSymbol name="binoculars" size={80} color={primaryColor} />
           </View>
         </Animated.View>
 
+        {/*
         <Animated.View style={[styles.textContainer, titleAnimatedStyle]}>
           <ThemedText type="title" style={styles.title}>
             Welcome to Findr
           </ThemedText>
         </Animated.View>
+        */}
 
         <Animated.View style={[styles.textContainer, subtitleAnimatedStyle]}>
           <ThemedText style={styles.subtitle}>
@@ -100,10 +120,21 @@ export default function WelcomeScreen() {
           </ThemedText>
         </Animated.View>
 
+        <Animated.View style={[styles.textContainer, titleAnimatedStyle]}>
+          <View style={styles.findrContainer}>
+            <ThemedText style={styles.title}>
+              With Findr
+            </ThemedText>
+            <Animated.View style={[styles.featherUnderline, featherAnimatedStyle]}>
+              <FeatherUnderline width={78} height={39} color={textColor} />
+            </Animated.View>
+          </View>
+        </Animated.View>
+
         <Animated.View style={[styles.buttonContainer, buttonsAnimatedStyle]}>
           <Link href="/sign-up" asChild>
             <TouchableOpacity>
-              <Animated.View style={[styles.primaryButton, { backgroundColor: primaryColor }]}>
+              <Animated.View style={[styles.primaryButton, { backgroundColor: secondaryColor }]}>
                 <ThemedText style={styles.primaryButtonText}>Get Started</ThemedText>
               </Animated.View>
             </TouchableOpacity>
@@ -129,6 +160,12 @@ export default function WelcomeScreen() {
   );
 }
 
+// Color constants for styling
+const darkGreen = '#023800';
+const lightGreen = '#95AC8B';
+const lightText = '#DADFBC';
+const darkText = '#211717';
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -143,7 +180,6 @@ const styles = StyleSheet.create({
     width: width * 2,
     height: width * 2,
     borderRadius: width,
-    backgroundColor: 'rgba(76, 175, 80, 0.05)',
     top: -width * 0.5,
   },
   content: {
@@ -163,7 +199,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0,
     shadowRadius: 20,
     elevation: 10,
   },
@@ -173,9 +209,19 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
+    lineHeight: 32,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 0,
+  },
+  findrContainer: {
+    position: 'relative',
+    alignItems: 'center',
+  },
+  featherUnderline: {
+    position: 'absolute',
+    bottom: -18,
+    right: 0,
   },
   subtitle: {
     fontSize: 16,
@@ -200,7 +246,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   primaryButtonText: {
-    color: 'white',
+    color: darkText,
     fontSize: 18,
     fontWeight: 'bold',
   },

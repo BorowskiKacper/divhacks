@@ -6,33 +6,25 @@
 import { Platform } from 'react-native';
 
 // Figma color variables
-const darkGreen = '#036400';
-const lightGreen = '#849A70';
-const lightText = '#DADFBC';
+const darkGreen = '#023800';
+const lightGreen = '#95AC8B';
+const lightText = '#BBBFA1';
 const darkText = '#211717';
 
 export const Colors = {
   light: {
-    text: darkText, // Dark Text for light mode
-    background: lightText, // Light Text as background
-    tint: darkGreen, // Dark Green as primary tint
-    icon: darkText, // Dark Text for icons
-    tabIconDefault: lightGreen, // Light Green for default tab icons
-    tabIconSelected: darkGreen, // Dark Green for selected tab icons
-    primary: darkGreen, // Dark Green for primary elements
-    secondary: lightGreen, // Light Green for secondary elements
-    accent: lightText, // Light Text for accents
+    text: darkText,
+    background: lightText,
+    tint: darkGreen,
+    primary: darkGreen,
+    secondary: lightGreen,
   },
   dark: {
-    text: lightText, // Light Text for dark mode
-    background: darkGreen, // Dark Green as background
-    tint: lightText, // Light Text as primary tint
-    icon: lightText, // Light Text for icons
-    tabIconDefault: lightGreen, // Light Green for default tab icons
-    tabIconSelected: lightText, // Light Text for selected tab icons
-    primary: lightText, // Light Text for primary elements
-    secondary: lightGreen, // Light Green for secondary elements
-    accent: darkGreen, // Dark Green for accents
+    text: lightText,
+    background: darkGreen,
+    tint: lightText,
+    primary: darkText,
+    secondary: lightGreen,
   },
 };
 
