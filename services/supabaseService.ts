@@ -106,7 +106,9 @@ export class SupabaseService {
   ): Promise<EnhancedAnimalSighting> {
     try {
       // Check if Supabase is properly configured
-      if (supabase.supabaseUrl === 'YOUR_SUPABASE_URL' || supabase.supabaseKey === 'YOUR_SUPABASE_ANON_KEY') {
+      const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+      if (!supabaseUrl || !supabaseKey || supabaseUrl === 'your_supabase_url_here' || supabaseKey === 'your_supabase_anon_key_here') {
         console.warn('Supabase not configured, using local fallback');
         return this.createLocalSighting(sighting, aiResult, imageUri);
       }
@@ -186,7 +188,9 @@ export class SupabaseService {
   async getSightingsByUser(userId: string): Promise<EnhancedAnimalSighting[]> {
     try {
       // Check if Supabase is properly configured
-      if (supabase.supabaseUrl === 'YOUR_SUPABASE_URL' || supabase.supabaseKey === 'YOUR_SUPABASE_ANON_KEY') {
+      const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+      if (!supabaseUrl || !supabaseKey || supabaseUrl === 'your_supabase_url_here' || supabaseKey === 'your_supabase_anon_key_here') {
         console.warn('Supabase not configured, returning empty array');
         return [];
       }
@@ -202,7 +206,7 @@ export class SupabaseService {
         throw new Error(`Failed to fetch sightings: ${error.message}`);
       }
 
-      return data.map(row => this.mapDatabaseRowToSighting(row));
+      return data.map((row: any) => this.mapDatabaseRowToSighting(row));
     } catch (error) {
       console.error('Supabase service error:', error);
       console.warn('Falling back to empty array');
@@ -222,7 +226,7 @@ export class SupabaseService {
         throw new Error(`Failed to fetch sightings: ${error.message}`);
       }
 
-      return data.map(row => this.mapDatabaseRowToSighting(row));
+      return data.map((row: any) => this.mapDatabaseRowToSighting(row));
     } catch (error) {
       console.error('Supabase service error:', error);
       throw error;
@@ -250,7 +254,7 @@ export class SupabaseService {
         throw new Error(`Failed to fetch sightings: ${error.message}`);
       }
 
-      return data.map(row => this.mapDatabaseRowToSighting(row));
+      return data.map((row: any) => this.mapDatabaseRowToSighting(row));
     } catch (error) {
       console.error('Supabase service error:', error);
       throw error;
@@ -263,7 +267,9 @@ export class SupabaseService {
   ): Promise<EnhancedAnimalSighting> {
     try {
       // Check if Supabase is properly configured
-      if (supabase.supabaseUrl === 'YOUR_SUPABASE_URL' || supabase.supabaseKey === 'YOUR_SUPABASE_ANON_KEY') {
+      const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+      if (!supabaseUrl || !supabaseKey || supabaseUrl === 'your_supabase_url_here' || supabaseKey === 'your_supabase_anon_key_here') {
         console.warn('Supabase not configured, cannot update sighting');
         throw new Error('Supabase not configured');
       }
@@ -305,7 +311,9 @@ export class SupabaseService {
   async deleteSighting(sightingId: string): Promise<void> {
     try {
       // Check if Supabase is properly configured
-      if (supabase.supabaseUrl === 'YOUR_SUPABASE_URL' || supabase.supabaseKey === 'YOUR_SUPABASE_ANON_KEY') {
+      const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+      if (!supabaseUrl || !supabaseKey || supabaseUrl === 'your_supabase_url_here' || supabaseKey === 'your_supabase_anon_key_here') {
         console.warn('Supabase not configured, cannot delete sighting');
         throw new Error('Supabase not configured');
       }
@@ -328,7 +336,9 @@ export class SupabaseService {
   async getSightingById(sightingId: string): Promise<EnhancedAnimalSighting | null> {
     try {
       // Check if Supabase is properly configured
-      if (supabase.supabaseUrl === 'YOUR_SUPABASE_URL' || supabase.supabaseKey === 'YOUR_SUPABASE_ANON_KEY') {
+      const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+      if (!supabaseUrl || !supabaseKey || supabaseUrl === 'your_supabase_url_here' || supabaseKey === 'your_supabase_anon_key_here') {
         console.warn('Supabase not configured, cannot fetch sighting');
         return null;
       }

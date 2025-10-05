@@ -1,32 +1,130 @@
-import React from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { StyleSheet, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useSightings } from '@/contexts/SightingsContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { supabaseService, EnhancedAnimalSighting } from '@/services/supabaseService';
+import { userService } from '@/services/userService';
 
 export default function StatsScreen() {
   const { sightings } = useSightings();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
-  const mySightings = sightings.filter(s => s.userId === 'you');
-  const birdCount = mySightings.filter(s => s.type === 'Bird').length;
-  const mammalCount = mySightings.filter(s => s.type === 'Mammal').length;
-  
-  // AI Analysis Statistics
-  const aiDetectedSightings = mySightings.filter(s => s.isAnimal && s.confidence && s.confidence > 0);
-  const averageConfidence = aiDetectedSightings.length > 0 
-    ? Math.round(aiDetectedSightings.reduce((sum, s) => sum + (s.confidence || 0), 0) / aiDetectedSightings.length)
-    : 0;
-  const rareSightings = mySightings.filter(s => s.rarity === 'Rarely found in the area' || s.rarity === 'Not supposed to be found in the area').length;
-  
   const primaryColor = useThemeColor({}, 'primary');
-
+  
+  // State for leaderboard data
+  const [allSightings, setAllSightings] = useState<EnhancedAnimalSighting[]>([]);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+  
+  // Get user's sightings
+  const mySightings = sightings.filter(s => s.userId === (user?.id || 'you'));
+  
+  // Calculate stats
+  const totalSpotted = mySightings.length;
+  const rareSightings = mySightings.filter(s => 
+    s.rarity === 'Rarely found in the area' || s.rarity === 'Not supposed to be found in the area'
+  ).length;
+  
+  // Last animal spotted
+  const lastAnimalSpotted = mySightings.length > 0 ? mySightings[0] : null;
+  
+  // Calculate daily streak
   const calculateStreak = () => {
     if (mySightings.length === 0) return 0;
-    return Math.min(mySightings.length, 7);
+    
+    const sortedSightings = [...mySightings].sort((a, b) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+    
+    let streak = 0;
+    let currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+    
+    for (const sighting of sortedSightings) {
+      const sightingDate = new Date(sighting.timestamp);
+      sightingDate.setHours(0, 0, 0, 0);
+      
+      const diffTime = currentDate.getTime() - sightingDate.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === streak) {
+        streak++;
+        currentDate = new Date(sightingDate);
+        currentDate.setDate(currentDate.getDate() - 1);
+      } else if (diffDays > streak) {
+        break;
+      }
+    }
+    
+    return streak;
   };
+  
+  // Calculate average spotted per day
+  const calculateAveragePerDay = () => {
+    if (mySightings.length === 0) return 0;
+    
+    const sortedSightings = [...mySightings].sort((a, b) => 
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    );
+    
+    const firstSighting = new Date(sortedSightings[0].timestamp);
+    const lastSighting = new Date(sortedSightings[sortedSightings.length - 1].timestamp);
+    const daysDiff = Math.max(1, Math.ceil((lastSighting.getTime() - firstSighting.getTime()) / (1000 * 60 * 60 * 24)));
+    
+    return Math.round((mySightings.length / daysDiff) * 10) / 10;
+  };
+  
+  // Calculate leaderboard position
+  const leaderboardPosition = useMemo(() => {
+    if (allSightings.length === 0) return null;
+    
+    const userStats = new Map<string, { total: number; rare: number; overall: number }>();
+    
+    // Calculate stats for all users
+    allSightings.forEach(sighting => {
+      const existing = userStats.get(sighting.userId) || { total: 0, rare: 0, overall: 0 };
+      existing.total += 1;
+      if (sighting.rarity === 'Rarely found in the area' || sighting.rarity === 'Not supposed to be found in the area') {
+        existing.rare += 1;
+      }
+      userStats.set(sighting.userId, existing);
+    });
+    
+    // Calculate overall score (total + rare * 2)
+    userStats.forEach(stats => {
+      stats.overall = stats.total + stats.rare * 2;
+    });
+    
+    // Sort by overall score
+    const sortedUsers = Array.from(userStats.entries())
+      .sort(([, a], [, b]) => b.overall - a.overall);
+    
+    const currentUserId = user?.id || 'you';
+    const position = sortedUsers.findIndex(([userId]) => userId === currentUserId);
+    
+    return position >= 0 ? position + 1 : null;
+  }, [allSightings, user?.id]);
+  
+  // Load leaderboard data
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        setIsLoadingStats(true);
+        const allSightingsData = await supabaseService.getAllSightings();
+        setAllSightings(allSightingsData);
+      } catch (error) {
+        console.error('Error loading stats:', error);
+      } finally {
+        setIsLoadingStats(false);
+      }
+    };
+    
+    loadStats();
+  }, []);
 
   const badges = [
     {
@@ -36,22 +134,6 @@ export default function StatsScreen() {
       icon: 'star.fill',
       earned: mySightings.length >= 1,
       color: '#FFD700'
-    },
-    {
-      id: 'bird_watcher',
-      name: 'Bird Watcher',
-      description: 'Spot 3 different birds',
-      icon: 'bird',
-      earned: birdCount >= 3,
-      color: '#4CAF50'
-    },
-    {
-      id: 'mammal_tracker',
-      name: 'Mammal Tracker', 
-      description: 'Spot 3 different mammals',
-      icon: 'hare',
-      earned: mammalCount >= 3,
-      color: '#FF9800'
     },
     {
       id: 'explorer',
@@ -70,20 +152,28 @@ export default function StatsScreen() {
       color: '#F44336'
     },
     {
-      id: 'ai_explorer',
-      name: 'AI Explorer',
-      description: 'Use AI to detect 5 creatures',
-      icon: 'brain.head.profile',
-      earned: aiDetectedSightings.length >= 5,
-      color: '#9C27B0'
-    },
-    {
       id: 'rare_hunter',
       name: 'Rare Hunter',
       description: 'Find 3 rare creatures',
       icon: 'star.fill',
       earned: rareSightings >= 3,
       color: '#FFD700'
+    },
+    {
+      id: 'top_performer',
+      name: 'Top Performer',
+      description: 'Rank in top 10 overall',
+      icon: 'trophy',
+      earned: leaderboardPosition !== null && leaderboardPosition <= 10,
+      color: '#FFD700'
+    },
+    {
+      id: 'daily_explorer',
+      name: 'Daily Explorer',
+      description: 'Average 2+ animals per day',
+      icon: 'calendar',
+      earned: calculateAveragePerDay() >= 2,
+      color: '#4CAF50'
     }
   ];
 
@@ -103,25 +193,17 @@ export default function StatsScreen() {
           <View style={styles.statCard}>
             <IconSymbol name="binoculars" size={32} color={primaryColor} />
             <ThemedText type="defaultSemiBold" style={[styles.statNumber, { color: darkText }]}>
-              {mySightings.length}
+              {totalSpotted}
             </ThemedText>
             <ThemedText style={[styles.statLabel, { color: darkText }]}>Total Spotted</ThemedText>
           </View>
 
           <View style={styles.statCard}>
-            <IconSymbol name="bird" size={32} color="#0A5CA8" />
+            <IconSymbol name="star.fill" size={32} color="#B38F00" />
             <ThemedText type="defaultSemiBold" style={[styles.statNumber, { color: darkText }]}>
-              {birdCount}
+              {rareSightings}
             </ThemedText>
-            <ThemedText style={[styles.statLabel, { color: darkText }]}>Birds</ThemedText>
-          </View>
-
-          <View style={styles.statCard}>
-            <IconSymbol name="hare" size={32} color="#C96B00" />
-            <ThemedText type="defaultSemiBold" style={[styles.statNumber, { color: darkText }]}>
-              {mammalCount}
-            </ThemedText>
-            <ThemedText style={[styles.statLabel, { color: darkText }]}>Mammals</ThemedText>
+            <ThemedText style={[styles.statLabel, { color: darkText }]}>Rare Finds</ThemedText>
           </View>
 
           <View style={styles.statCard}>
@@ -133,19 +215,27 @@ export default function StatsScreen() {
           </View>
 
           <View style={styles.statCard}>
-            <IconSymbol name="brain.head.profile" size={32} color="#5A1176" />
+            <IconSymbol name="pawprint" size={32} color="#8B4513" />
             <ThemedText type="defaultSemiBold" style={[styles.statNumber, { color: darkText }]}>
-              {averageConfidence}%
+              {lastAnimalSpotted ? lastAnimalSpotted.name : 'None'}
             </ThemedText>
-            <ThemedText style={[styles.statLabel, { color: darkText }]}>Avg AI Confidence</ThemedText>
+            <ThemedText style={[styles.statLabel, { color: darkText }]}>Last Animal</ThemedText>
           </View>
 
           <View style={styles.statCard}>
-            <IconSymbol name="star.fill" size={32} color="#B38F00" />
+            <IconSymbol name="trophy" size={32} color="#FFD700" />
             <ThemedText type="defaultSemiBold" style={[styles.statNumber, { color: darkText }]}>
-              {rareSightings}
+              {isLoadingStats ? '...' : (leaderboardPosition ? `#${leaderboardPosition}` : 'N/A')}
             </ThemedText>
-            <ThemedText style={[styles.statLabel, { color: darkText }]}>Rare Finds</ThemedText>
+            <ThemedText style={[styles.statLabel, { color: darkText }]}>Leaderboard</ThemedText>
+          </View>
+
+          <View style={styles.statCard}>
+            <IconSymbol name="calendar" size={32} color="#4CAF50" />
+            <ThemedText type="defaultSemiBold" style={[styles.statNumber, { color: darkText }]}>
+              {calculateAveragePerDay()}
+            </ThemedText>
+            <ThemedText style={[styles.statLabel, { color: darkText }]}>Avg Per Day</ThemedText>
           </View>
         </View>
 
@@ -223,7 +313,7 @@ export default function StatsScreen() {
                       {sighting.name}
                     </ThemedText>
                     <ThemedText style={[styles.activityTime, { color: darkText }]}>
-                      {sighting.timestamp.toLocaleDateString()}
+                      {new Date(sighting.timestamp).toLocaleDateString()}
                     </ThemedText>
                   </View>
                   <View style={[styles.activityType, { backgroundColor: darkText }]}>

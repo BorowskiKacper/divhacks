@@ -12,6 +12,7 @@ import Animated, {
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import BrandMark from '@/components/ui/brand-mark';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { FeatherUnderline } from '@/components/ui/feather-underline';
 
@@ -100,7 +101,7 @@ export default function WelcomeScreen() {
         <View style={styles.content}>
         <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
           <View style={[styles.logoBackground, { backgroundColor: secondaryColor, shadowColor: primaryColor }]}>
-            <IconSymbol name="binoculars" size={80} color={primaryColor} />
+            <BrandMark width={80} height={80} />
           </View>
         </Animated.View>
 
