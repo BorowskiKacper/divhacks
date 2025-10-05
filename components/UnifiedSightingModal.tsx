@@ -123,7 +123,7 @@ export default function UnifiedSightingModal({
             <IconSymbol name="xmark" size={24} color={lightText} />
           </TouchableOpacity>
           <ThemedText type="title" style={styles.title}>
-            {isDetectionMode ? 'Creature Detected! 🦋' : 'Sighting Details'}
+            {isDetectionMode ? 'Creature Detected!' : 'Sighting Details'}
           </ThemedText>
         </View>
 
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 60,
+    paddingTop: 20,
     paddingBottom: 20,
     borderBottomWidth: 1,
     borderBottomColor: lightGreen,

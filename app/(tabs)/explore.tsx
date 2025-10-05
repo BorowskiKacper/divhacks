@@ -256,7 +256,7 @@ export default function SpotScreen() {
             {isAnalyzing ? (
               <ActivityIndicator size="small" color="white" />
             ) : (
-              <IconSymbol name="camera.fill" size={40} color="white" />
+              <IconSymbol name="camera.fill" size={40} color={darkText} />
             )}
           </TouchableOpacity>
           <TouchableOpacity 
@@ -297,7 +297,7 @@ export default function SpotScreen() {
           style={styles.cameraButton} 
           onPress={() => setShowCamera(true)}
         >
-          <IconSymbol name="camera.fill" size={50} color="white" />
+          <IconSymbol name="camera.fill" size={50} color={darkText} />
           <ThemedText style={styles.cameraButtonText}>Spot an Animal</ThemedText>
         </TouchableOpacity>
 
@@ -339,18 +339,6 @@ export default function SpotScreen() {
                       </View>
                     )}
                   </View>
-                </View>
-                <ThemedText style={styles.sightingType}>{sighting.type}</ThemedText>
-                <ThemedText style={styles.sightingTime}>
-                  {sighting.timestamp.toLocaleDateString()} at {sighting.timestamp.toLocaleTimeString()}
-                </ThemedText>
-                {sighting.description && (
-                  <ThemedText style={styles.sightingDescription} numberOfLines={2}>
-                    {sighting.description}
-                  </ThemedText>
-                )}
-                <View style={styles.sightingFooter}>
-                  <IconSymbol name="chevron.right" size={16} color="#666" />
                 </View>
               </TouchableOpacity>
             ))
@@ -405,7 +393,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   cameraButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: lightGreen,
     margin: 20,
     padding: 30,
     borderRadius: 15,
@@ -413,7 +401,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cameraButtonText: {
-    color: 'white',
+    color: darkText,
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 10,
@@ -444,7 +432,7 @@ const styles = StyleSheet.create({
     margin: 20,
   },
   sightingCard: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
+    backgroundColor: lightGreen,
     padding: 15,
     borderRadius: 10,
     marginVertical: 5,
@@ -456,11 +444,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 0,
   },
   sightingName: {
     flex: 1,
     fontSize: 16,
+    color: darkText,
   },
   sightingBadges: {
     flexDirection: 'row',
@@ -469,28 +458,28 @@ const styles = StyleSheet.create({
   confidenceBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#9C27B0',
+    backgroundColor: darkText,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
     gap: 4,
   },
   confidenceText: {
-    color: 'white',
+    color: lightText,
     fontSize: 10,
     fontWeight: '600',
   },
   rarityBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFD700',
+    backgroundColor: darkText,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
     gap: 4,
   },
   rarityText: {
-    color: 'white',
+    color: lightText,
     fontSize: 10,
     fontWeight: '600',
   },
@@ -499,6 +488,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     marginTop: 8,
     lineHeight: 18,
+    color: darkText,
   },
   sightingFooter: {
     marginLeft: 12,
@@ -521,11 +511,13 @@ const styles = StyleSheet.create({
   sightingType: {
     opacity: 0.7,
     fontSize: 14,
+    color: darkText,
   },
   sightingTime: {
     opacity: 0.5,
     fontSize: 12,
     marginTop: 5,
+    color: darkText,
   },
   message: {
     textAlign: 'center',
