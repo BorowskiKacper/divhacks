@@ -87,7 +87,9 @@ export default function UnifiedSightingModal({
     if (isDetectionMode) {
       return (data as AnimalDetectionResult)?.creatureType || '';
     }
-    return (data as AnimalSighting)?.type || '';
+    // For saved sightings, use creatureType (from creature_type database field) if available, fallback to type
+    const savedSighting = data as AnimalSighting;
+    return savedSighting?.creatureType || savedSighting?.type || '';
   };
 
   const getDescription = () => {
