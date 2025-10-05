@@ -46,7 +46,7 @@ export class GeminiService {
       const base64Image = await this.convertImageToBase64(imageUri);
       
       const prompt = `
-        Analyze this image and identify if there's a creature (animal, bird, insect, etc.) present. 
+        Analyze this image and identify if there's a real-life, existing creature (animal, bird, insect, etc.) present. 
         If there is a creature, provide detailed information about it.
         
         Focus on wildlife, domestic animals, birds, insects, marine life, and other creatures.
