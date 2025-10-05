@@ -6,8 +6,8 @@
 import { Platform } from 'react-native';
 
 // Figma color variables
-const darkGreen = '#035000';
-const lightGreen = '#83996F';
+const darkGreen = '#023800';
+const lightGreen = '#95AC8B';
 const lightText = '#BBBFA1';
 const darkText = '#211717';
 
