@@ -48,9 +48,15 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "b1a6f157-978f-4abf-8bf2-11d6cc0c4289"
+        "projectId": "7674b478-11b3-4d04-b7e3-f8839fd205a7"
       }
     },
-    "owner": "veecs"
+    "owner": "goon1234",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/7674b478-11b3-4d04-b7e3-f8839fd205a7"
+    }
   }
 }
