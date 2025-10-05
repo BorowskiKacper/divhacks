@@ -12,6 +12,7 @@ import Animated, {
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import BrandMark from '@/components/ui/brand-mark';
 import { useAuth } from '@/contexts/AuthContext';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
@@ -151,7 +152,7 @@ export default function SignUpScreen() {
               
               <Animated.View style={[styles.logoContainer, successAnimatedStyle]}>
                 <View style={styles.logoBackground}>
-                  <IconSymbol name="binoculars" size={40} color={primaryColor} />
+                  <BrandMark width={40} height={40} />
                 </View>
               </Animated.View>
 

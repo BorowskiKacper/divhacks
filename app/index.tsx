@@ -12,6 +12,7 @@ import Animated, {
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import BrandMark from '@/components/ui/brand-mark';
 import { useAuth } from '@/contexts/AuthContext';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { FeatherUnderline } from '@/components/ui/feather-underline';
@@ -67,7 +68,7 @@ export default function Index() {
       <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
         <Animated.View style={[styles.pulseContainer, pulseAnimatedStyle]}>
           <View style={[styles.logoBackground, { backgroundColor: secondaryColor }]}>
-            <IconSymbol name="binoculars" size={60} color={primaryColor} />
+            <BrandMark width={60} height={60} />
           </View>
         </Animated.View>
         <View style={styles.findrContainer}>
