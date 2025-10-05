@@ -21,6 +21,84 @@ export interface EnhancedAnimalSighting {
 }
 
 export class SupabaseService {
+  /**
+   * Upload an image to Supabase Storage bucket 'animals'
+   * @param imageUri - Local file URI of the image
+   * @param userId - User ID for organizing files
+   * @returns Public URL of the uploaded image
+   */
+  async uploadImage(imageUri: string, userId: string): Promise<string | null> {
+    try {
+      // Check if Supabase is properly configured
+      if (supabase.supabaseUrl === 'YOUR_SUPABASE_URL' || supabase.supabaseKey === 'YOUR_SUPABASE_ANON_KEY') {
+        console.warn('Supabase not configured, cannot upload image');
+        return imageUri; // Return local URI as fallback
+      }
+
+      console.log('[Upload] Starting image upload:', imageUri);
+
+      // Generate a unique filename
+      const timestamp = Date.now();
+      const fileExt = imageUri.split('.').pop()?.toLowerCase() || 'jpg';
+      const fileName = `${userId}/${timestamp}.${fileExt}`;
+
+      // Determine content type from file extension
+      const contentTypeMap: { [key: string]: string } = {
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'png': 'image/png',
+        'gif': 'image/gif',
+        'webp': 'image/webp',
+        'heic': 'image/heic',
+        'heif': 'image/heif',
+      };
+      const contentType = contentTypeMap[fileExt] || 'image/jpeg';
+
+      console.log('[Upload] Target:', fileName, '| Content-Type:', contentType);
+
+      // Fetch the image and convert to ArrayBuffer
+      // This works in both web and React Native/Expo environments
+      console.log('[Upload] Fetching image data...');
+      const response = await fetch(imageUri);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+      }
+
+      const arrayBuffer = await response.arrayBuffer();
+      console.log('[Upload] Image data loaded, size:', arrayBuffer.byteLength, 'bytes');
+
+      // Upload to Supabase Storage using ArrayBuffer
+      console.log('[Upload] Uploading to Supabase Storage...');
+      const { data, error } = await supabase.storage
+        .from('animals')
+        .upload(fileName, arrayBuffer, {
+          contentType: contentType,
+          upsert: false,
+        });
+
+      if (error) {
+        console.error('[Upload] Supabase upload error:', error);
+        throw error;
+      }
+
+      console.log('[Upload] Upload successful:', data.path);
+
+      // Get public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('animals')
+        .getPublicUrl(fileName);
+
+      console.log('[Upload] Public URL generated:', publicUrlData.publicUrl);
+      return publicUrlData.publicUrl;
+
+    } catch (error) {
+      console.error('[Upload] Error in uploadImage:', error);
+      // Return local URI as fallback so the app can continue
+      return imageUri;
+    }
+  }
+
   async createSighting(
     sighting: Omit<EnhancedAnimalSighting, 'id' | 'timestamp'>,
     aiResult?: AnimalDetectionResult,
@@ -31,6 +109,17 @@ export class SupabaseService {
       if (supabase.supabaseUrl === 'YOUR_SUPABASE_URL' || supabase.supabaseKey === 'YOUR_SUPABASE_ANON_KEY') {
         console.warn('Supabase not configured, using local fallback');
         return this.createLocalSighting(sighting, aiResult, imageUri);
+      }
+
+      // Upload image to Supabase Storage if provided
+      let uploadedImageUrl = imageUri || null;
+      if (imageUri) {
+        console.log('Uploading image to Supabase Storage...');
+        const publicUrl = await this.uploadImage(imageUri, sighting.userId);
+        if (publicUrl) {
+          uploadedImageUrl = publicUrl;
+          console.log('Image uploaded, public URL:', publicUrl);
+        }
       }
 
       const sightingData = {
@@ -47,7 +136,7 @@ export class SupabaseService {
         key_characteristics: aiResult?.keyCharacteristics || null,
         rarity: aiResult?.rarity || null,
         is_animal: aiResult?.isAnimal || false,
-        image_uri: imageUri || null,
+        image_uri: uploadedImageUrl,
       };
 
       const { data, error } = await supabase
@@ -272,13 +361,13 @@ export class SupabaseService {
       longitude: row.longitude,
       timestamp: new Date(row.timestamp),
       confidence: row.confidence,
-      description: row.description,
-      species: row.species,
-      creatureType: row.creature_type,
-      keyCharacteristics: row.key_characteristics,
-      rarity: row.rarity,
+      description: row.description || undefined,
+      species: row.species || undefined,
+      creatureType: row.creature_type || undefined,
+      keyCharacteristics: row.key_characteristics || undefined,
+      rarity: row.rarity || undefined,
       isAnimal: row.is_animal,
-      imageUri: row.image_uri,
+      imageUri: row.image_uri || undefined,
     };
   }
 }

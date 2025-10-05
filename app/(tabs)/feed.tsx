@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, ScrollView, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, ScrollView, View, TouchableOpacity, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
@@ -73,11 +73,19 @@ export default function FeedScreen() {
 
               <View style={styles.sightingContent}>
                 <View style={styles.animalPhoto}>
-                  <IconSymbol 
-                    name={sighting.type === 'Bird' ? 'bird' : 'hare'} 
-                    size={40} 
-                    color={textColor} 
-                  />
+                  {sighting.imageUri ? (
+                    <Image 
+                      source={{ uri: sighting.imageUri }} 
+                      style={styles.animalImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <IconSymbol 
+                      name={sighting.type === 'Bird' ? 'bird' : 'hare'} 
+                      size={40} 
+                      color={textColor} 
+                    />
+                  )}
                 </View>
                 <View style={styles.sightingDetails}>
                   <ThemedText type="defaultSemiBold" style={[styles.animalName, { color: primaryColor }]}>
@@ -214,6 +222,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
+    overflow: 'hidden',
+  },
+  animalImage: {
+    width: '100%',
+    height: '100%',
   },
   sightingDetails: {
     flex: 1,

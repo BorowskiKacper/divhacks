@@ -8,6 +8,7 @@ import {
   Alert,
   TextInput,
   Dimensions,
+  Image,
 } from 'react-native';
 import { ThemedView } from './themed-view';
 import { ThemedText } from './themed-text';
@@ -110,6 +111,13 @@ export default function UnifiedSightingModal({
     return data?.confidence || 0;
   };
 
+  const getImageUri = () => {
+    if (isSavedSighting) {
+      return (data as AnimalSighting)?.imageUri;
+    }
+    return undefined;
+  };
+
   return (
     <Modal
       visible={visible}
@@ -128,6 +136,16 @@ export default function UnifiedSightingModal({
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {/* Image Display - Show for saved sightings with images */}
+          {getImageUri() && (
+            <View style={styles.imageContainer}>
+              <Image 
+                source={{ uri: getImageUri() }} 
+                style={styles.sightingImage}
+                resizeMode="cover"
+              />
+            </View>
+          )}
           {/* Confidence Badge - Show for both modes when confidence is available */}
           {getConfidence() > 0 && (
               <View style={styles.confidenceContainer}>
@@ -285,6 +303,18 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     borderBottomWidth: 1,
     borderBottomColor: lightGreen,
+  },
+  imageContainer: {
+    width: '100%',
+    height: 300,
+    marginBottom: 20,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: lightGreen,
+  },
+  sightingImage: {
+    width: '100%',
+    height: '100%',
   },
   closeButton: {
     padding: 8,

@@ -21,6 +21,7 @@ export default function SpotScreen() {
   const [showSightingDetail, setShowSightingDetail] = useState(false);
   const [selectedSighting, setSelectedSighting] = useState<any>(null);
   const [currentLocation, setCurrentLocation] = useState<Location.LocationObject | null>(null);
+  const [capturedPhotoUri, setCapturedPhotoUri] = useState<string | null>(null);
   const { sightings, addSighting, updateSighting, deleteSighting } = useSightings();
   const { user } = useAuth();
   const recentSightings = sightings.filter(s => s.userId === (user?.id || 'you'));
@@ -67,6 +68,7 @@ export default function SpotScreen() {
       });
       
       console.log('Photo captured:', photo.uri);
+      setCapturedPhotoUri(photo.uri); // Store the photo URI
       
       console.log('Analyzing image with AI...');
       const aiResult = await geminiService.analyzeAnimalImage(photo.uri);
@@ -167,11 +169,12 @@ export default function SpotScreen() {
         type: animalType,
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
-      }, aiResult || undefined, undefined); // Pass AI result if available
+      }, aiResult || undefined, capturedPhotoUri || undefined); // Pass AI result and photo URI
       
       Alert.alert('Success!', `${name} logged at your current location and added to the map!`);
       setShowCamera(false);
       setAiResult(null);
+      setCapturedPhotoUri(null); // Clear the captured photo URI
       setShowCreatureModal(false);
     } catch (error) {
       console.error('Error logging sighting:', error);
