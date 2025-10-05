@@ -59,7 +59,7 @@ export default function FeedScreen() {
                   </View>
                   <View>
                     <ThemedText style={[styles.username, { color: primaryColor }]}>
-                      {sighting.userId === 'you' ? 'You' : sighting.userId}
+                      {sighting.username || (sighting.userId === 'you' ? 'You' : sighting.userId)}
                     </ThemedText>
                     <ThemedText style={[styles.timeAgo, { color: primaryColor }]}>
                       {formatTimeAgo(sighting.timestamp)}

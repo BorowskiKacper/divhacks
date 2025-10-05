@@ -78,7 +78,7 @@ export default function MapScreen() {
                   longitude: sighting.longitude,
                 }}
                 title={sighting.name}
-                description={`${sighting.type} spotted by ${sighting.userId}`}
+                description={`${sighting.type} spotted by ${sighting.username || sighting.userId}`}
                 pinColor={sighting.userId === 'you' ? 'blue' : 'red'}
               />
             );

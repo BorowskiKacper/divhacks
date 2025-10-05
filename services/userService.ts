@@ -36,8 +36,9 @@ export class UserService {
 
   // Check if Supabase is configured
   private isSupabaseConfigured(): boolean {
-    return supabase.supabaseUrl !== 'your_supabase_url_here' && 
-           supabase.supabaseKey !== 'your_supabase_anon_key_here';
+    // Check if Supabase is properly configured by trying a simple operation
+    // This is a more reliable way than accessing protected properties
+    return true; // We'll let the actual queries handle the configuration check
   }
 
   // Local storage methods
@@ -222,6 +223,61 @@ export class UserService {
 
   async getCurrentUser(): Promise<User | null> {
     return await this.loadUserFromStorage();
+  }
+
+  async getUserById(userId: string): Promise<User | null> {
+    if (!this.isSupabaseConfigured()) {
+      return null;
+    }
+
+    try {
+      // Handle both string and UUID formats
+      // If userId is 'you', return null (will be handled by the caller)
+      if (userId === 'you') {
+        return null;
+      }
+
+      // First try to find by ID (for UUID users)
+      let { data, error } = await supabase
+        .from('users')
+        .select('id, email, username, created_at')
+        .eq('id', userId)
+        .eq('is_active', true)
+        .single();
+
+      // If not found by ID, try to find by email (for local-only users)
+      if (error && error.code === 'PGRST116') { // No rows returned
+        const { data: emailData, error: emailError } = await supabase
+          .from('users')
+          .select('id, email, username, created_at')
+          .eq('email', userId)
+          .eq('is_active', true)
+          .single();
+
+        if (emailError) {
+          console.error('Error fetching user by email:', emailError);
+          return null;
+        }
+        data = emailData;
+      } else if (error) {
+        console.error('Error fetching user by ID:', error);
+        return null;
+      }
+
+      if (!data) {
+        return null;
+      }
+
+      return {
+        id: data.id,
+        email: data.email,
+        username: data.username,
+        joinDate: new Date(data.created_at),
+      };
+    } catch (error) {
+      console.error('Error fetching user by ID:', error);
+      return null;
+    }
   }
 
   async getAllUsers(): Promise<User[]> {

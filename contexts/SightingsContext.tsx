@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { supabaseService, EnhancedAnimalSighting } from '../services/supabaseService';
 import { AnimalDetectionResult } from '../services/geminiService';
 import { useAuth } from './AuthContext';
+import { userService } from '../services/userService';
 
 export interface AnimalSighting {
   id: string;
@@ -11,6 +12,7 @@ export interface AnimalSighting {
   longitude: number;
   timestamp: Date;
   userId: string;
+  username?: string; // Added username field
   // AI Analysis data
   confidence?: number;
   description?: string;
@@ -77,7 +79,13 @@ export const SightingsProvider: React.FC<SightingsProviderProps> = ({ children }
         imageUri
       );
       
-      setSightings(prev => [enhancedSighting, ...prev]);
+      // Add username to the sighting
+      const sightingWithUsername = {
+        ...enhancedSighting,
+        username: userId === 'you' ? 'You' : (user?.username || userId)
+      };
+      
+      setSightings(prev => [sightingWithUsername, ...prev]);
     } catch (err) {
       console.error('Error adding sighting:', err);
       setError(err instanceof Error ? err.message : 'Failed to add sighting');
@@ -132,6 +140,37 @@ export const SightingsProvider: React.FC<SightingsProviderProps> = ({ children }
     return sightings.find(sighting => sighting.id === sightingId);
   };
 
+  // Function to fetch usernames for sightings
+  const fetchUsernamesForSightings = async (sightings: AnimalSighting[]): Promise<AnimalSighting[]> => {
+    const uniqueUserIds = [...new Set(sightings.map(s => s.userId))];
+    const userMap = new Map<string, string>();
+    
+    // Fetch usernames for all unique user IDs
+    for (const userId of uniqueUserIds) {
+      if (userId === 'you') {
+        userMap.set(userId, 'You');
+      } else {
+        try {
+          const user = await userService.getUserById(userId);
+          if (user) {
+            userMap.set(userId, user.username);
+          } else {
+            userMap.set(userId, userId); // Fallback to user ID if username not found
+          }
+        } catch (error) {
+          console.error('Error fetching username for user:', userId, error);
+          userMap.set(userId, userId); // Fallback to user ID
+        }
+      }
+    }
+    
+    // Map sightings with usernames
+    return sightings.map(sighting => ({
+      ...sighting,
+      username: userMap.get(sighting.userId) || sighting.userId
+    }));
+  };
+
   const refreshSightings = async () => {
     try {
       setIsLoading(true);
@@ -140,7 +179,10 @@ export const SightingsProvider: React.FC<SightingsProviderProps> = ({ children }
       // Use the actual logged-in user's ID, fallback to 'you' if no user
       const userId = user?.id || 'you';
       const userSightings = await supabaseService.getSightingsByUser(userId);
-      setSightings(userSightings);
+      
+      // Fetch usernames for all sightings
+      const sightingsWithUsernames = await fetchUsernamesForSightings(userSightings);
+      setSightings(sightingsWithUsernames);
     } catch (err) {
       console.error('Error refreshing sightings:', err);
       setError(err instanceof Error ? err.message : 'Failed to refresh sightings');
