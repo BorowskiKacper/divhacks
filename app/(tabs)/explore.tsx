@@ -7,6 +7,7 @@ import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useSightings } from '@/contexts/SightingsContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { geminiService, AnimalDetectionResult } from '@/services/geminiService';
 import SightingDetailModal from '@/components/SightingDetailModal';
 import CreatureInfoModal from '@/components/CreatureInfoModal';
@@ -22,7 +23,8 @@ export default function SpotScreen() {
   const [selectedSighting, setSelectedSighting] = useState<any>(null);
   const [currentLocation, setCurrentLocation] = useState<Location.LocationObject | null>(null);
   const { sightings, addSighting, updateSighting, deleteSighting } = useSightings();
-  const recentSightings = sightings.filter(s => s.userId === 'you');
+  const { user } = useAuth();
+  const recentSightings = sightings.filter(s => s.userId === (user?.id || 'you'));
   const insets = useSafeAreaInsets();
   const cameraRef = useRef<CameraView>(null);
 

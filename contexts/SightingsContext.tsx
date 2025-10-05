@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { supabaseService, EnhancedAnimalSighting } from '../services/supabaseService';
 import { AnimalDetectionResult } from '../services/geminiService';
+import { useAuth } from './AuthContext';
 
 export interface AnimalSighting {
   id: string;
@@ -51,6 +52,7 @@ export const SightingsProvider: React.FC<SightingsProviderProps> = ({ children }
   const [sightings, setSightings] = useState<AnimalSighting[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const addSighting = async (
     newSighting: Omit<AnimalSighting, 'id' | 'timestamp' | 'userId'>,
@@ -61,10 +63,15 @@ export const SightingsProvider: React.FC<SightingsProviderProps> = ({ children }
       setIsLoading(true);
       setError(null);
       
+      // Use the actual logged-in user's ID, fallback to 'you' if no user
+      const userId = user?.id || 'you';
+      
       const enhancedSighting = await supabaseService.createSighting(
         {
           ...newSighting,
-          userId: 'you' // For now, using a static user ID
+          userId: userId,
+          confidence: newSighting.confidence || 0,
+          isAnimal: newSighting.isAnimal || false,
         },
         aiResult,
         imageUri
@@ -130,7 +137,9 @@ export const SightingsProvider: React.FC<SightingsProviderProps> = ({ children }
       setIsLoading(true);
       setError(null);
       
-      const userSightings = await supabaseService.getSightingsByUser('you');
+      // Use the actual logged-in user's ID, fallback to 'you' if no user
+      const userId = user?.id || 'you';
+      const userSightings = await supabaseService.getSightingsByUser(userId);
       setSightings(userSightings);
     } catch (err) {
       console.error('Error refreshing sightings:', err);
@@ -146,10 +155,12 @@ export const SightingsProvider: React.FC<SightingsProviderProps> = ({ children }
     console.log('Demo sightings initialization - now handled by Supabase');
   };
 
-  // Load sightings on mount
+  // Load sightings on mount and when user changes
   useEffect(() => {
-    refreshSightings();
-  }, []);
+    if (user) {
+      refreshSightings();
+    }
+  }, [user]);
 
   return (
     <SightingsContext.Provider value={{ 

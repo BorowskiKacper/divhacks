@@ -1,12 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-
-export interface User {
-  id: string;
-  email: string;
-  username: string;
-  avatar?: string;
-  joinDate: Date;
-}
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { userService, User } from '@/services/userService';
 
 interface AuthContextType {
   user: User | null;
@@ -32,52 +25,64 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Load user from storage on app start
+    loadUserFromStorage();
+  }, []);
+
+  const loadUserFromStorage = async () => {
+    try {
+      const userData = await userService.getCurrentUser();
+      setUser(userData);
+    } catch (error) {
+      console.error('Error loading user from storage:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const signIn = async (email: string, password: string) => {
     setIsLoading(true);
     
-    // Mock authentication delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Mock user data
-    const mockUser: User = {
-      id: '1',
-      email,
-      username: email.split('@')[0],
-      joinDate: new Date(),
-    };
-    
-    setUser(mockUser);
-    setIsLoading(false);
+    try {
+      const userData = await userService.signIn(email, password);
+      setUser(userData);
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      throw new Error(error.message || 'Failed to sign in');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const signUp = async (email: string, password: string, username: string) => {
     setIsLoading(true);
     
-    // Mock registration delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Mock user creation
-    const mockUser: User = {
-      id: Math.random().toString(),
-      email,
-      username,
-      joinDate: new Date(),
-    };
-    
-    setUser(mockUser);
-    setIsLoading(false);
+    try {
+      const userData = await userService.signUp(email, password, username);
+      setUser(userData);
+    } catch (error: any) {
+      console.error('Sign up error:', error);
+      throw new Error(error.message || 'Failed to create account');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const signOut = async () => {
     setIsLoading(true);
     
-    // Mock sign out delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    setUser(null);
-    setIsLoading(false);
+    try {
+      await userService.signOut();
+      setUser(null);
+    } catch (error: any) {
+      console.error('Sign out error:', error);
+      throw new Error(error.message || 'Failed to sign out');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
