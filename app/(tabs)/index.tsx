@@ -18,15 +18,27 @@ export default function MapScreen() {
 
   useEffect(() => {
     (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setErrorMsg('Permission to access location was denied');
-        return;
-      }
+      try {
+        console.log('Requesting location permission...');
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        console.log('Permission status:', status);
+        
+        if (status !== 'granted') {
+          setErrorMsg('Permission to access location was denied');
+          return;
+        }
 
-      let location = await Location.getCurrentPositionAsync({});
-      setLocation(location);
-      initializeDemoSightings(location.coords.latitude, location.coords.longitude);
+        console.log('Getting current position...');
+        let location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+        console.log('Location obtained:', location);
+        setLocation(location);
+        initializeDemoSightings(location.coords.latitude, location.coords.longitude);
+      } catch (error) {
+        console.error('Location error:', error);
+        setErrorMsg('Failed to get location: ' + error.message);
+      }
     })();
   }, [initializeDemoSightings]);
 

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { StyleSheet, View, TouchableOpacity, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as Location from 'expo-location';
@@ -7,14 +7,21 @@ import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useSightings } from '@/contexts/SightingsContext';
+import { geminiService, AnimalDetectionResult } from '@/services/geminiService';
+import CreatureInfoModal from '@/components/CreatureInfoModal';
 
 export default function SpotScreen() {
   const [facing] = useState<CameraType>('back');
   const [permission, requestPermission] = useCameraPermissions();
   const [showCamera, setShowCamera] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [aiResult, setAiResult] = useState<AnimalDetectionResult | null>(null);
+  const [showCreatureModal, setShowCreatureModal] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState<Location.LocationObject | null>(null);
   const { sightings, addSighting } = useSightings();
   const recentSightings = sightings.filter(s => s.userId === 'you');
   const insets = useSafeAreaInsets();
+  const cameraRef = useRef<CameraView>(null);
 
   if (!permission) {
     return <View />;
@@ -32,7 +39,96 @@ export default function SpotScreen() {
   }
 
   const takePicture = async () => {
-    const location = await Location.getCurrentPositionAsync({});
+    try {
+      if (!cameraRef.current) {
+        Alert.alert('Error', 'Camera not ready. Please try again.');
+        return;
+      }
+
+      setIsAnalyzing(true);
+      setAiResult(null);
+      
+      console.log('Getting location for camera...');
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      console.log('Location obtained for camera:', location);
+      setCurrentLocation(location);
+
+      // Actually capture the photo
+      console.log('Capturing photo...');
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.8,
+        base64: false,
+      });
+      
+      console.log('Photo captured:', photo.uri);
+      
+      console.log('Analyzing image with AI...');
+      const aiResult = await geminiService.analyzeAnimalImage(photo.uri);
+      console.log('AI Analysis result:', aiResult);
+      
+      setAiResult(aiResult);
+      setIsAnalyzing(false);
+
+      console.log('AI Result:', aiResult);
+      console.log('isAnimal:', aiResult.isAnimal);
+      console.log('confidence:', aiResult.confidence);
+      console.log('Should show modal:', aiResult.isAnimal && aiResult.confidence > 30);
+
+      if (aiResult.isAnimal && aiResult.confidence > 30) {
+        // AI detected a creature with reasonable confidence
+        console.log('Setting showCreatureModal to true');
+        setShowCreatureModal(true);
+      } else {
+        // TEMPORARY: Force show modal for testing
+        console.log('Forcing modal to show for testing');
+        setShowCreatureModal(true);
+        // AI didn't detect a creature or confidence is too low
+        Alert.alert(
+          'No Creature Detected',
+          'I couldn\'t clearly identify a creature in this photo. Would you like to enter it manually?',
+          [
+            {
+              text: 'Cancel',
+              style: 'cancel'
+            },
+            {
+              text: 'Enter Manually',
+              onPress: () => {
+                promptManualInput(location);
+              }
+            }
+          ]
+        );
+      }
+
+    } catch (error) {
+      console.error('Error in takePicture:', error);
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      setIsAnalyzing(false);
+      
+      let errorMessage = 'Failed to analyze the image. Please try again or enter manually.';
+      
+      if (error.message.includes('timed out')) {
+        errorMessage = 'AI analysis took too long. Please try again or enter manually.';
+      } else if (error.message.includes('API key') || error.message.includes('API_KEY')) {
+        errorMessage = 'AI service configuration error. Please check your API key.';
+      } else if (error.message.includes('Failed to process image')) {
+        errorMessage = 'Could not process the photo. Please try taking another picture.';
+      } else if (error.message.includes('Failed to analyze image with AI')) {
+        errorMessage = 'AI service is currently unavailable. Please try again later or enter manually.';
+      }
+      
+      Alert.alert('Analysis Error', `${errorMessage}\n\nError: ${error.message}`);
+    }
+  };
+
+  const promptManualInput = (location: Location.LocationObject) => {
     Alert.prompt(
       'Log Animal Sighting',
       'What animal did you spot?',
@@ -44,19 +140,8 @@ export default function SpotScreen() {
         {
           text: 'Log It!',
           onPress: (name) => {
-            if (name) {
-              const animalType = name.toLowerCase().includes('bird') || name.toLowerCase().includes('cardinal') || name.toLowerCase().includes('robin') ? 'Bird' : 
-                                name.toLowerCase().includes('squirrel') || name.toLowerCase().includes('cat') || name.toLowerCase().includes('dog') ? 'Mammal' : 'Animal';
-              
-              addSighting({
-                name,
-                type: animalType,
-                latitude: location.coords.latitude,
-                longitude: location.coords.longitude,
-              });
-              
-              Alert.alert('Success!', `${name} logged at your current location and added to the map!`);
-              setShowCamera(false);
+            if (name && name.trim()) {
+              logSighting(name, location);
             }
           },
         },
@@ -66,17 +151,84 @@ export default function SpotScreen() {
     );
   };
 
+  const logSighting = (name: string, location: Location.LocationObject) => {
+    const animalType = name.toLowerCase().includes('bird') ? 'Bird' : 
+                     name.toLowerCase().includes('mammal') ? 'Mammal' : 
+                     name.toLowerCase().includes('reptile') ? 'Reptile' : 
+                     name.toLowerCase().includes('amphibian') ? 'Amphibian' : 
+                     name.toLowerCase().includes('fish') ? 'Fish' : 'Other';
+    
+    addSighting({
+      name,
+      type: animalType,
+      latitude: location.coords.latitude,
+      longitude: location.coords.longitude,
+    });
+    
+    Alert.alert('Success!', `${name} logged at your current location and added to the map!`);
+    setShowCamera(false);
+    setAiResult(null);
+    setShowCreatureModal(false);
+  };
+
+  const handleLogSighting = () => {
+    if (aiResult && currentLocation) {
+      logSighting(aiResult.name, currentLocation);
+    }
+  };
+
+  const handleEnterManually = () => {
+    setShowCreatureModal(false);
+    if (currentLocation) {
+      promptManualInput(currentLocation);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowCreatureModal(false);
+    setAiResult(null);
+  };
+
   if (showCamera) {
     return (
       <View style={styles.container}>
-        <CameraView style={styles.camera} facing={facing} />
+        <CameraView ref={cameraRef} style={styles.camera} facing={facing} />
+        
+        {/* AI Analysis Overlay */}
+        {isAnalyzing && (
+          <View style={styles.aiOverlay}>
+            <ActivityIndicator size="large" color="#4CAF50" />
+            <ThemedText style={styles.aiText}>Analyzing with AI...</ThemedText>
+          </View>
+        )}
+        
+        {/* AI Result Display */}
+        {aiResult && !isAnalyzing && (
+          <View style={styles.aiResultOverlay}>
+            <ThemedText style={styles.aiResultText}>
+              AI Detected: {aiResult.name} ({aiResult.confidence}%)
+            </ThemedText>
+          </View>
+        )}
+        
         <View style={[styles.buttonContainer, { bottom: insets.bottom + 64 }]}>
-          <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
-            <IconSymbol name="camera.fill" size={40} color="white" />
+          <TouchableOpacity 
+            style={[styles.captureButton, isAnalyzing && styles.captureButtonDisabled]} 
+            onPress={takePicture}
+            disabled={isAnalyzing}
+          >
+            {isAnalyzing ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <IconSymbol name="camera.fill" size={40} color="white" />
+            )}
           </TouchableOpacity>
           <TouchableOpacity 
             style={styles.closeButton} 
-            onPress={() => setShowCamera(false)}
+            onPress={() => {
+              setShowCamera(false);
+              setAiResult(null);
+            }}
           >
             <IconSymbol name="xmark" size={30} color="white" />
           </TouchableOpacity>
@@ -103,6 +255,26 @@ export default function SpotScreen() {
           <ThemedText style={styles.cameraButtonText}>Spot an Animal</ThemedText>
         </TouchableOpacity>
 
+        {/* DEBUG: Test Modal Button */}
+        <TouchableOpacity 
+          style={[styles.cameraButton, { backgroundColor: '#FF9800' }]}
+          onPress={() => {
+            console.log('DEBUG: Testing modal');
+            setAiResult({
+              name: 'Test Bird',
+              confidence: 85,
+              creatureType: 'Bird',
+              keyCharacteristics: 'Red plumage, distinctive crest',
+              rarity: 'Commonly found in the area',
+              isAnimal: true
+            });
+            setShowCreatureModal(true);
+          }}
+        >
+          <IconSymbol name="sparkles" size={40} color="white" />
+          <ThemedText style={styles.cameraButtonText}>Test Modal</ThemedText>
+        </TouchableOpacity>
+
         <ThemedView style={styles.section}>
           <ThemedText type="subtitle">Your Recent Sightings</ThemedText>
           {recentSightings.map((sighting) => (
@@ -116,6 +288,15 @@ export default function SpotScreen() {
           ))}
         </ThemedView>
       </ScrollView>
+
+      {/* Creature Info Modal */}
+      <CreatureInfoModal
+        visible={showCreatureModal}
+        creature={aiResult}
+        onClose={handleCloseModal}
+        onLogSighting={handleLogSighting}
+        onEnterManually={handleEnterManually}
+      />
     </ThemedView>
   );
 }
@@ -207,5 +388,41 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
     fontWeight: 'bold',
+  },
+  aiOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  aiText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 16,
+  },
+  aiResultOverlay: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    right: 20,
+    backgroundColor: 'rgba(76, 175, 80, 0.9)',
+    padding: 12,
+    borderRadius: 8,
+    zIndex: 5,
+  },
+  aiResultText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  captureButtonDisabled: {
+    opacity: 0.5,
   },
 });
