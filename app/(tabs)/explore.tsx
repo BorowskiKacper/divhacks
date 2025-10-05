@@ -107,27 +107,26 @@ export default function SpotScreen() {
 
     } catch (error) {
       console.error('Error in takePicture:', error);
-      const errorObj = error as Error;
       console.error('Error details:', {
-        message: errorObj.message,
-        stack: errorObj.stack,
-        name: errorObj.name
+        message: error.message,
+        stack: error.stack,
+        name: error.name
       });
       setIsAnalyzing(false);
       
       let errorMessage = 'Failed to analyze the image. Please try again or enter manually.';
       
-      if (errorObj.message.includes('timed out')) {
+      if (error.message.includes('timed out')) {
         errorMessage = 'AI analysis took too long. Please try again or enter manually.';
-      } else if (errorObj.message.includes('API key') || errorObj.message.includes('API_KEY')) {
+      } else if (error.message.includes('API key') || error.message.includes('API_KEY')) {
         errorMessage = 'AI service configuration error. Please check your API key.';
-      } else if (errorObj.message.includes('Failed to process image')) {
+      } else if (error.message.includes('Failed to process image')) {
         errorMessage = 'Could not process the photo. Please try taking another picture.';
-      } else if (errorObj.message.includes('Failed to analyze image with AI')) {
+      } else if (error.message.includes('Failed to analyze image with AI')) {
         errorMessage = 'AI service is currently unavailable. Please try again later or enter manually.';
       }
       
-      Alert.alert('Analysis Error', `${errorMessage}\n\nError: ${errorObj.message}`);
+      Alert.alert('Analysis Error', `${errorMessage}\n\nError: ${error.message}`);
     }
   };
 
@@ -142,7 +141,7 @@ export default function SpotScreen() {
         },
         {
           text: 'Log It!',
-          onPress: (name?: string) => {
+          onPress: (name) => {
             if (name && name.trim()) {
               logSighting(name, location);
             }
@@ -167,7 +166,7 @@ export default function SpotScreen() {
         type: animalType,
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
-      }, aiResult || undefined, undefined); // Pass AI result if available
+      }, aiResult, undefined); // Pass AI result if available
       
       Alert.alert('Success!', `${name} logged at your current location and added to the map!`);
       setShowCamera(false);
@@ -207,23 +206,6 @@ export default function SpotScreen() {
     setSelectedSighting(null);
   };
 
-  const handleUpdateSighting = async (sightingId: string, updates: any) => {
-    try {
-      await updateSighting(sightingId, updates);
-    } catch (error) {
-      console.error('Error updating sighting:', error);
-      throw error;
-    }
-  };
-
-  const handleDeleteSighting = async (sightingId: string) => {
-    try {
-      await deleteSighting(sightingId);
-    } catch (error) {
-      console.error('Error deleting sighting:', error);
-      throw error;
-    }
-  };
 
   if (showCamera) {
     return (
@@ -256,7 +238,7 @@ export default function SpotScreen() {
             {isAnalyzing ? (
               <ActivityIndicator size="small" color="white" />
             ) : (
-              <IconSymbol name="camera.fill" size={40} color={darkText} />
+              <IconSymbol name="camera.fill" size={40} color="white" />
             )}
           </TouchableOpacity>
           <TouchableOpacity 
@@ -270,7 +252,7 @@ export default function SpotScreen() {
           </TouchableOpacity>
         </View>
         
-        {/* Unified Modal - Detection Mode */}
+        {/* Unified Sighting Modal - also show in camera view */}
         <UnifiedSightingModal
           visible={showCreatureModal}
           mode="detection"
@@ -297,7 +279,7 @@ export default function SpotScreen() {
           style={styles.cameraButton} 
           onPress={() => setShowCamera(true)}
         >
-          <IconSymbol name="camera.fill" size={50} color={darkText} />
+          <IconSymbol name="camera.fill" size={50} color="white" />
           <ThemedText style={styles.cameraButtonText}>Spot an Animal</ThemedText>
         </TouchableOpacity>
 
@@ -340,13 +322,25 @@ export default function SpotScreen() {
                     )}
                   </View>
                 </View>
+                <ThemedText style={styles.sightingType}>{sighting.type}</ThemedText>
+                <ThemedText style={styles.sightingTime}>
+                  {sighting.timestamp.toLocaleDateString()} at {sighting.timestamp.toLocaleTimeString()}
+                </ThemedText>
+                {sighting.description && (
+                  <ThemedText style={styles.sightingDescription} numberOfLines={2}>
+                    {sighting.description}
+                  </ThemedText>
+                )}
+                <View style={styles.sightingFooter}>
+                  <IconSymbol name="chevron.right" size={16} color="#666" />
+                </View>
               </TouchableOpacity>
             ))
           )}
         </ThemedView>
       </ScrollView>
 
-      {/* Unified Modal - Detection Mode */}
+      {/* Unified Sighting Modal for AI Detection */}
       <UnifiedSightingModal
         visible={showCreatureModal}
         mode="detection"
@@ -356,7 +350,7 @@ export default function SpotScreen() {
         onEnterManually={handleEnterManually}
       />
 
-      {/* Unified Modal - View Mode */}
+      {/* Unified Sighting Modal for Saved Sightings */}
       <UnifiedSightingModal
         visible={showSightingDetail}
         mode="view"
@@ -393,7 +387,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   cameraButton: {
-    backgroundColor: lightGreen,
+    backgroundColor: '#4CAF50',
     margin: 20,
     padding: 30,
     borderRadius: 15,
@@ -401,7 +395,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cameraButtonText: {
-    color: darkText,
+    color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 10,
@@ -432,7 +426,7 @@ const styles = StyleSheet.create({
     margin: 20,
   },
   sightingCard: {
-    backgroundColor: lightGreen,
+    backgroundColor: 'rgba(0,0,0,0.05)',
     padding: 15,
     borderRadius: 10,
     marginVertical: 5,
@@ -444,12 +438,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 0,
+    marginBottom: 8,
   },
   sightingName: {
     flex: 1,
     fontSize: 16,
-    color: darkText,
   },
   sightingBadges: {
     flexDirection: 'row',
@@ -458,28 +451,28 @@ const styles = StyleSheet.create({
   confidenceBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: darkText,
+    backgroundColor: '#9C27B0',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
     gap: 4,
   },
   confidenceText: {
-    color: lightText,
+    color: 'white',
     fontSize: 10,
     fontWeight: '600',
   },
   rarityBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: darkText,
+    backgroundColor: '#FFD700',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
     gap: 4,
   },
   rarityText: {
-    color: lightText,
+    color: 'white',
     fontSize: 10,
     fontWeight: '600',
   },
@@ -488,7 +481,6 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     marginTop: 8,
     lineHeight: 18,
-    color: darkText,
   },
   sightingFooter: {
     marginLeft: 12,
@@ -511,13 +503,11 @@ const styles = StyleSheet.create({
   sightingType: {
     opacity: 0.7,
     fontSize: 14,
-    color: darkText,
   },
   sightingTime: {
     opacity: 0.5,
     fontSize: 12,
     marginTop: 5,
-    color: darkText,
   },
   message: {
     textAlign: 'center',
