@@ -1,11 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-import * as Location from 'expo-location';
-import { ThemedView } from '@/components/themed-view';
 import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
 import { useSightings } from '@/contexts/SightingsContext';
+import * as Location from 'expo-location';
+import React, { useEffect, useState } from 'react';
+import { Platform, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// Conditional import for react-native-maps (not available on web)
+let MapView: any = null;
+let Marker: any = null;
+let PROVIDER_GOOGLE: any = null;
+
+if (Platform.OS !== 'web') {
+  try {
+    const Maps = require('react-native-maps');
+    MapView = Maps.default;
+    Marker = Maps.Marker;
+    PROVIDER_GOOGLE = Maps.PROVIDER_GOOGLE;
+  } catch (error) {
+    console.log('react-native-maps not available on this platform');
+  }
+}
 
 export default function MapScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
@@ -56,34 +71,59 @@ export default function MapScreen() {
           <ThemedText style={styles.debugText}>Sightings: {sightings.length}</ThemedText>
         </View>
       {location ? (
-        <MapView
-          style={styles.map}
-          provider={PROVIDER_GOOGLE}
-          initialRegion={{
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-            latitudeDelta: 0.05,
-            longitudeDelta: 0.05,
-          }}
-          showsUserLocation={true}
-          showsMyLocationButton={true}
-        >
-          {sightings.map((sighting) => {
-            console.log('Rendering marker for:', sighting.name, sighting.latitude, sighting.longitude);
-            return (
-              <Marker
-                key={sighting.id}
-                coordinate={{
-                  latitude: sighting.latitude,
-                  longitude: sighting.longitude,
-                }}
-                title={sighting.name}
-                description={`${sighting.type} spotted by ${sighting.username || sighting.userId}`}
-                pinColor={sighting.userId === 'you' ? 'blue' : 'red'}
-              />
-            );
-          })}
-        </MapView>
+        Platform.OS === 'web' ? (
+          <View style={styles.webMapFallback}>
+            <ThemedText style={styles.webMapTitle}>🗺️ Map View</ThemedText>
+            <ThemedText style={styles.webMapSubtitle}>
+              Location: {location.coords.latitude.toFixed(4)}, {location.coords.longitude.toFixed(4)}
+            </ThemedText>
+            <View style={styles.sightingsList}>
+              <ThemedText style={styles.sightingsTitle}>Nearby Sightings ({sightings.length})</ThemedText>
+              {sightings.map((sighting) => (
+                <View key={sighting.id} style={styles.sightingItem}>
+                  <ThemedText style={styles.sightingName}>{sighting.name}</ThemedText>
+                  <ThemedText style={styles.sightingType}>{sighting.type}</ThemedText>
+                  <ThemedText style={styles.sightingLocation}>
+                    📍 {sighting.latitude.toFixed(4)}, {sighting.longitude.toFixed(4)}
+                  </ThemedText>
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : MapView ? (
+          <MapView
+            style={styles.map}
+            provider={PROVIDER_GOOGLE}
+            initialRegion={{
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+              latitudeDelta: 0.05,
+              longitudeDelta: 0.05,
+            }}
+            showsUserLocation={true}
+            showsMyLocationButton={true}
+          >
+            {sightings.map((sighting) => {
+              console.log('Rendering marker for:', sighting.name, sighting.latitude, sighting.longitude);
+              return (
+                <Marker
+                  key={sighting.id}
+                  coordinate={{
+                    latitude: sighting.latitude,
+                    longitude: sighting.longitude,
+                  }}
+                  title={sighting.name}
+                  description={`${sighting.type} spotted by ${sighting.username || sighting.userId}`}
+                  pinColor={sighting.userId === 'you' ? 'blue' : 'red'}
+                />
+              );
+            })}
+          </MapView>
+        ) : (
+          <View style={styles.loading}>
+            <ThemedText>Map not available on this platform</ThemedText>
+          </View>
+        )
       ) : (
         <View style={styles.loading}>
           <ThemedText>Loading map...</ThemedText>
@@ -126,5 +166,55 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  webMapFallback: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#f5f5f5',
+  },
+  webMapTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  webMapSubtitle: {
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: 'center',
+    color: '#666',
+  },
+  sightingsList: {
+    flex: 1,
+  },
+  sightingsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+  },
+  sightingItem: {
+    backgroundColor: 'white',
+    padding: 15,
+    marginBottom: 10,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  sightingName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  sightingType: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 5,
+  },
+  sightingLocation: {
+    fontSize: 12,
+    color: '#888',
   },
 });
