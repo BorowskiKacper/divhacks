@@ -6,7 +6,7 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { EnhancedAnimalSighting, supabaseService } from '@/services/supabaseService';
 import { userService } from '@/services/userService';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Animated, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Choose readable text color (black/white) against a given hex background
@@ -36,6 +36,8 @@ export default function FeedScreen() {
   const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(false);
   const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
   const [leaderboardCategory, setLeaderboardCategory] = useState<'overall' | 'total' | 'rare'>('overall');
+  const [chevronRotation] = useState(new Animated.Value(0));
+  const [leaderboardHeight] = useState(new Animated.Value(0));
 
   type UserStats = {
     userId: string;
@@ -128,6 +130,36 @@ export default function FeedScreen() {
   const headerToggleTextColor = useMemo(() => getReadableTextColor(backgroundColor), [backgroundColor]);
   const cardSubTextColor = useMemo(() => getReadableTextColor(lightGreen), []);
 
+  // Animate chevron rotation and leaderboard height when showLeaderboard changes
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(chevronRotation, {
+        toValue: showLeaderboard ? 1 : 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(leaderboardHeight, {
+        toValue: showLeaderboard ? 1 : 0,
+        duration: 300,
+        useNativeDriver: false,
+      }),
+    ]).start();
+  }, [showLeaderboard, chevronRotation, leaderboardHeight]);
+
+  const chevronRotate = chevronRotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '90deg'],
+  });
+
+  const leaderboardAnimatedStyle = {
+    maxHeight: leaderboardHeight.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 500],
+    }),
+    opacity: leaderboardHeight,
+    overflow: 'hidden' as const,
+  };
+
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
@@ -136,21 +168,23 @@ export default function FeedScreen() {
           Recent animal discoveries near you
         </ThemedText>
         <TouchableOpacity
-          style={[styles.leaderboardToggle, { borderColor: primaryColor, backgroundColor: backgroundColor }]}
+          style={[styles.leaderboardToggle, { borderColor: primaryColor, backgroundColor: secondaryColor }]}
           onPress={() => setShowLeaderboard(v => !v)}
         >
-          <IconSymbol name={showLeaderboard ? 'chevron.down' : 'chevron.right'} size={16} color={primaryColor} />
-          <ThemedText style={[styles.leaderboardToggleText, { color: headerToggleTextColor }]}>
+          <Animated.View style={{ transform: [{ rotate: chevronRotate }] }}>
+            <IconSymbol name="chevron.right" size={16} color={primaryColor} />
+          </Animated.View>
+          <ThemedText style={[styles.leaderboardToggleText, { color: primaryColor }]}>
             {showLeaderboard ? 'Hide Leaderboard' : 'Show Leaderboard'}
           </ThemedText>
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.feedContainer} showsVerticalScrollIndicator={false}>
-        {showLeaderboard && (
+        <Animated.View style={leaderboardAnimatedStyle}>
           <View style={styles.leaderboardContainer}>
             <View style={styles.leaderboardHeader}>
-              <ThemedText type="subtitle">Leaderboard</ThemedText>
+              <ThemedText style={{ color: darkText }} type="subtitle">Leaderboard</ThemedText>
               <View style={styles.categoryRow}>
                 {[
                   { key: 'overall', label: 'Best Overall' },
@@ -180,11 +214,11 @@ export default function FeedScreen() {
               <View style={styles.leaderboardList}>
                 {topFive.map((u, index) => (
                   <View key={u.userId} style={styles.leaderboardItem}>
-                    <View style={[styles.rankCircle, { backgroundColor: primaryColor }]}>
-                      <ThemedText style={[styles.rankText, { color: '#fff' }]}>{index + 1}</ThemedText>
+                    <View style={[styles.rankCircle, { backgroundColor: secondaryColor }]}>
+                      <ThemedText style={[styles.rankText, { color: primaryColor }]}>{index + 1}</ThemedText>
                     </View>
                     <View style={styles.leaderboardUser}>
-                      <ThemedText type="defaultSemiBold" style={{ color: darkText }}>
+                      <ThemedText type="defaultSemiBold" style={{ color: lightText }}>
                         {u.username}
                       </ThemedText>
                       <ThemedText style={{ opacity: 0.6 }}>
@@ -193,7 +227,7 @@ export default function FeedScreen() {
                         {leaderboardCategory === 'rare' && `${u.rare} rare`}
                       </ThemedText>
                     </View>
-                    <ThemedText type="defaultSemiBold" style={{ color: darkText }}>
+                    <ThemedText type="defaultSemiBold" style={{ color: lightText }}>
                       {leaderboardCategory === 'overall' ? u.overall :
                         leaderboardCategory === 'total' ? u.total :
                         u.rare}
@@ -203,7 +237,7 @@ export default function FeedScreen() {
               </View>
             )}
           </View>
-        )}
+        </Animated.View>
         {sightings.length === 0 ? (
           <View style={styles.emptyState}>
             <IconSymbol name="binoculars" size={64} color={secondaryColor} />
@@ -323,7 +357,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   leaderboardContainer: {
-    backgroundColor: 'rgba(0,0,0,0.02)',
+    backgroundColor: lightText,
     borderRadius: 12,
     padding: 12,
     marginBottom: 16,
@@ -355,7 +389,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: lightText,
+    backgroundColor: darkGreen,
     borderRadius: 10,
     padding: 10,
     marginBottom: 8,
@@ -412,7 +446,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(0,0,0,0.1)',
+    backgroundColor: darkGreen,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
