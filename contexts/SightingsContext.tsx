@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { supabaseService, EnhancedAnimalSighting } from '../services/supabaseService';
+import { AnimalDetectionResult } from '../services/geminiService';
 
 export interface AnimalSighting {
   id: string;
@@ -8,12 +10,27 @@ export interface AnimalSighting {
   longitude: number;
   timestamp: Date;
   userId: string;
+  // AI Analysis data
+  confidence?: number;
+  description?: string;
+  species?: string;
+  creatureType?: string;
+  keyCharacteristics?: string;
+  rarity?: string;
+  isAnimal?: boolean;
+  imageUri?: string;
 }
 
 interface SightingsContextType {
   sightings: AnimalSighting[];
-  addSighting: (sighting: Omit<AnimalSighting, 'id' | 'timestamp' | 'userId'>) => void;
+  addSighting: (sighting: Omit<AnimalSighting, 'id' | 'timestamp' | 'userId'>, aiResult?: AnimalDetectionResult, imageUri?: string) => Promise<void>;
+  updateSighting: (sightingId: string, updates: Partial<Omit<AnimalSighting, 'id' | 'timestamp' | 'userId'>>) => Promise<void>;
+  deleteSighting: (sightingId: string) => Promise<void>;
+  getSightingById: (sightingId: string) => AnimalSighting | undefined;
   initializeDemoSightings: (latitude: number, longitude: number) => void;
+  refreshSightings: () => Promise<void>;
+  isLoading: boolean;
+  error: string | null;
 }
 
 const SightingsContext = createContext<SightingsContextType | undefined>(undefined);
@@ -32,45 +49,120 @@ interface SightingsProviderProps {
 
 export const SightingsProvider: React.FC<SightingsProviderProps> = ({ children }) => {
   const [sightings, setSightings] = useState<AnimalSighting[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const addSighting = (newSighting: Omit<AnimalSighting, 'id' | 'timestamp' | 'userId'>) => {
-    const sighting: AnimalSighting = {
-      ...newSighting,
-      id: Date.now().toString(),
-      timestamp: new Date(),
-      userId: 'you'
-    };
-    setSightings(prev => [sighting, ...prev]);
-  };
-
-  const initializeDemoSightings = (latitude: number, longitude: number) => {
-    if (sightings.length === 0) {
-      const demoSightings: AnimalSighting[] = [
+  const addSighting = async (
+    newSighting: Omit<AnimalSighting, 'id' | 'timestamp' | 'userId'>,
+    aiResult?: AnimalDetectionResult,
+    imageUri?: string
+  ) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const enhancedSighting = await supabaseService.createSighting(
         {
-          id: '1',
-          name: 'Red Cardinal',
-          type: 'Bird',
-          latitude: latitude + 0.002,
-          longitude: longitude + 0.002,
-          timestamp: new Date(Date.now() - 3600000),
-          userId: 'demo'
+          ...newSighting,
+          userId: 'you' // For now, using a static user ID
         },
-        {
-          id: '2',
-          name: 'Gray Squirrel',
-          type: 'Mammal',
-          latitude: latitude - 0.002,
-          longitude: longitude - 0.002,
-          timestamp: new Date(Date.now() - 7200000),
-          userId: 'demo'
-        }
-      ];
-      setSightings(demoSightings);
+        aiResult,
+        imageUri
+      );
+      
+      setSightings(prev => [enhancedSighting, ...prev]);
+    } catch (err) {
+      console.error('Error adding sighting:', err);
+      setError(err instanceof Error ? err.message : 'Failed to add sighting');
+      throw err;
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const updateSighting = async (
+    sightingId: string,
+    updates: Partial<Omit<AnimalSighting, 'id' | 'timestamp' | 'userId'>>
+  ) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const updatedSighting = await supabaseService.updateSighting(sightingId, updates);
+      
+      setSightings(prev => 
+        prev.map(sighting => 
+          sighting.id === sightingId ? updatedSighting : sighting
+        )
+      );
+    } catch (err) {
+      console.error('Error updating sighting:', err);
+      setError(err instanceof Error ? err.message : 'Failed to update sighting');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const deleteSighting = async (sightingId: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      await supabaseService.deleteSighting(sightingId);
+      
+      setSightings(prev => prev.filter(sighting => sighting.id !== sightingId));
+    } catch (err) {
+      console.error('Error deleting sighting:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete sighting');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getSightingById = (sightingId: string): AnimalSighting | undefined => {
+    return sightings.find(sighting => sighting.id === sightingId);
+  };
+
+  const refreshSightings = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const userSightings = await supabaseService.getSightingsByUser('you');
+      setSightings(userSightings);
+    } catch (err) {
+      console.error('Error refreshing sightings:', err);
+      setError(err instanceof Error ? err.message : 'Failed to refresh sightings');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const initializeDemoSightings = (latitude: number, longitude: number) => {
+    // This function is kept for backward compatibility but now relies on Supabase
+    // Demo sightings should be created in the database instead
+    console.log('Demo sightings initialization - now handled by Supabase');
+  };
+
+  // Load sightings on mount
+  useEffect(() => {
+    refreshSightings();
+  }, []);
+
   return (
-    <SightingsContext.Provider value={{ sightings, addSighting, initializeDemoSightings }}>
+    <SightingsContext.Provider value={{ 
+      sightings, 
+      addSighting, 
+      updateSighting,
+      deleteSighting,
+      getSightingById,
+      initializeDemoSightings, 
+      refreshSightings,
+      isLoading,
+      error
+    }}>
       {children}
     </SightingsContext.Provider>
   );

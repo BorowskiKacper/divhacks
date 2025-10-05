@@ -14,6 +14,13 @@ export default function StatsScreen() {
   const birdCount = mySightings.filter(s => s.type === 'Bird').length;
   const mammalCount = mySightings.filter(s => s.type === 'Mammal').length;
   
+  // AI Analysis Statistics
+  const aiDetectedSightings = mySightings.filter(s => s.isAnimal && s.confidence && s.confidence > 0);
+  const averageConfidence = aiDetectedSightings.length > 0 
+    ? Math.round(aiDetectedSightings.reduce((sum, s) => sum + (s.confidence || 0), 0) / aiDetectedSightings.length)
+    : 0;
+  const rareSightings = mySightings.filter(s => s.rarity === 'Rarely found in the area' || s.rarity === 'Not supposed to be found in the area').length;
+  
   const primaryColor = useThemeColor({}, 'primary');
 
   const calculateStreak = () => {
@@ -61,6 +68,22 @@ export default function StatsScreen() {
       icon: 'flame',
       earned: calculateStreak() >= 7,
       color: '#F44336'
+    },
+    {
+      id: 'ai_explorer',
+      name: 'AI Explorer',
+      description: 'Use AI to detect 5 creatures',
+      icon: 'brain.head.profile',
+      earned: aiDetectedSightings.length >= 5,
+      color: '#9C27B0'
+    },
+    {
+      id: 'rare_hunter',
+      name: 'Rare Hunter',
+      description: 'Find 3 rare creatures',
+      icon: 'star.fill',
+      earned: rareSightings >= 3,
+      color: '#FFD700'
     }
   ];
 
@@ -107,6 +130,22 @@ export default function StatsScreen() {
               {calculateStreak()}
             </ThemedText>
             <ThemedText style={styles.statLabel}>Day Streak</ThemedText>
+          </View>
+
+          <View style={styles.statCard}>
+            <IconSymbol name="brain.head.profile" size={32} color="#9C27B0" />
+            <ThemedText type="defaultSemiBold" style={styles.statNumber}>
+              {averageConfidence}%
+            </ThemedText>
+            <ThemedText style={styles.statLabel}>Avg AI Confidence</ThemedText>
+          </View>
+
+          <View style={styles.statCard}>
+            <IconSymbol name="star.fill" size={32} color="#FFD700" />
+            <ThemedText type="defaultSemiBold" style={styles.statNumber}>
+              {rareSightings}
+            </ThemedText>
+            <ThemedText style={styles.statLabel}>Rare Finds</ThemedText>
           </View>
         </View>
 

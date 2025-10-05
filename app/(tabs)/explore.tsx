@@ -8,6 +8,7 @@ import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useSightings } from '@/contexts/SightingsContext';
 import { geminiService, AnimalDetectionResult } from '@/services/geminiService';
+import SightingDetailModal from '@/components/SightingDetailModal';
 import CreatureInfoModal from '@/components/CreatureInfoModal';
 
 export default function SpotScreen() {
@@ -17,8 +18,10 @@ export default function SpotScreen() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiResult, setAiResult] = useState<AnimalDetectionResult | null>(null);
   const [showCreatureModal, setShowCreatureModal] = useState(false);
+  const [showSightingDetail, setShowSightingDetail] = useState(false);
+  const [selectedSighting, setSelectedSighting] = useState<any>(null);
   const [currentLocation, setCurrentLocation] = useState<Location.LocationObject | null>(null);
-  const { sightings, addSighting } = useSightings();
+  const { sightings, addSighting, updateSighting, deleteSighting } = useSightings();
   const recentSightings = sightings.filter(s => s.userId === 'you');
   const insets = useSafeAreaInsets();
   const cameraRef = useRef<CameraView>(null);
@@ -149,29 +152,34 @@ export default function SpotScreen() {
     );
   };
 
-  const logSighting = (name: string, location: Location.LocationObject) => {
-    const animalType = name.toLowerCase().includes('bird') ? 'Bird' : 
-                     name.toLowerCase().includes('mammal') ? 'Mammal' : 
-                     name.toLowerCase().includes('reptile') ? 'Reptile' : 
-                     name.toLowerCase().includes('amphibian') ? 'Amphibian' : 
-                     name.toLowerCase().includes('fish') ? 'Fish' : 'Other';
-    
-    addSighting({
-      name,
-      type: animalType,
-      latitude: location.coords.latitude,
-      longitude: location.coords.longitude,
-    });
-    
-    Alert.alert('Success!', `${name} logged at your current location and added to the map!`);
-    setShowCamera(false);
-    setAiResult(null);
-    setShowCreatureModal(false);
+  const logSighting = async (name: string, location: Location.LocationObject) => {
+    try {
+      const animalType = name.toLowerCase().includes('bird') ? 'Bird' : 
+                       name.toLowerCase().includes('mammal') ? 'Mammal' : 
+                       name.toLowerCase().includes('reptile') ? 'Reptile' : 
+                       name.toLowerCase().includes('amphibian') ? 'Amphibian' : 
+                       name.toLowerCase().includes('fish') ? 'Fish' : 'Other';
+      
+      await addSighting({
+        name,
+        type: animalType,
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      }, aiResult, undefined); // Pass AI result if available
+      
+      Alert.alert('Success!', `${name} logged at your current location and added to the map!`);
+      setShowCamera(false);
+      setAiResult(null);
+      setShowCreatureModal(false);
+    } catch (error) {
+      console.error('Error logging sighting:', error);
+      Alert.alert('Error', 'Failed to log sighting. Please try again.');
+    }
   };
 
-  const handleLogSighting = () => {
+  const handleLogSighting = async () => {
     if (aiResult && currentLocation) {
-      logSighting(aiResult.name, currentLocation);
+      await logSighting(aiResult.name, currentLocation);
     }
   };
 
@@ -185,6 +193,34 @@ export default function SpotScreen() {
   const handleCloseModal = () => {
     setShowCreatureModal(false);
     setAiResult(null);
+  };
+
+  const handleSightingPress = (sighting: any) => {
+    setSelectedSighting(sighting);
+    setShowSightingDetail(true);
+  };
+
+  const handleCloseSightingDetail = () => {
+    setShowSightingDetail(false);
+    setSelectedSighting(null);
+  };
+
+  const handleUpdateSighting = async (sightingId: string, updates: any) => {
+    try {
+      await updateSighting(sightingId, updates);
+    } catch (error) {
+      console.error('Error updating sighting:', error);
+      throw error;
+    }
+  };
+
+  const handleDeleteSighting = async (sightingId: string) => {
+    try {
+      await deleteSighting(sightingId);
+    } catch (error) {
+      console.error('Error deleting sighting:', error);
+      throw error;
+    }
   };
 
   if (showCamera) {
@@ -265,15 +301,57 @@ export default function SpotScreen() {
 
         <ThemedView style={styles.section}>
           <ThemedText type="subtitle">Your Recent Sightings</ThemedText>
-          {recentSightings.map((sighting) => (
-            <ThemedView key={sighting.id} style={styles.sightingCard}>
-              <ThemedText type="defaultSemiBold">{sighting.name}</ThemedText>
-              <ThemedText style={styles.sightingType}>{sighting.type}</ThemedText>
-              <ThemedText style={styles.sightingTime}>
-                {sighting.timestamp.toLocaleDateString()} at {sighting.timestamp.toLocaleTimeString()}
+          {recentSightings.length === 0 ? (
+            <ThemedView style={styles.emptyState}>
+              <IconSymbol name="moon.stars" size={48} color="#ccc" />
+              <ThemedText style={styles.emptyText}>No sightings yet</ThemedText>
+              <ThemedText style={styles.emptySubtext}>
+                Take a photo to start logging creatures!
               </ThemedText>
             </ThemedView>
-          ))}
+          ) : (
+            recentSightings.map((sighting) => (
+              <TouchableOpacity 
+                key={sighting.id} 
+                style={styles.sightingCard}
+                onPress={() => handleSightingPress(sighting)}
+              >
+                <View style={styles.sightingHeader}>
+                  <ThemedText type="defaultSemiBold" style={styles.sightingName}>
+                    {sighting.name}
+                  </ThemedText>
+                  <View style={styles.sightingBadges}>
+                    {sighting.confidence && sighting.confidence > 0 && (
+                      <View style={styles.confidenceBadge}>
+                        <IconSymbol name="brain.head.profile" size={12} color="#9C27B0" />
+                        <ThemedText style={styles.confidenceText}>
+                          {sighting.confidence}%
+                        </ThemedText>
+                      </View>
+                    )}
+                    {sighting.rarity && sighting.rarity !== 'Commonly found in the area' && (
+                      <View style={styles.rarityBadge}>
+                        <IconSymbol name="star.fill" size={12} color="#FFD700" />
+                        <ThemedText style={styles.rarityText}>Rare</ThemedText>
+                      </View>
+                    )}
+                  </View>
+                </View>
+                <ThemedText style={styles.sightingType}>{sighting.type}</ThemedText>
+                <ThemedText style={styles.sightingTime}>
+                  {sighting.timestamp.toLocaleDateString()} at {sighting.timestamp.toLocaleTimeString()}
+                </ThemedText>
+                {sighting.description && (
+                  <ThemedText style={styles.sightingDescription} numberOfLines={2}>
+                    {sighting.description}
+                  </ThemedText>
+                )}
+                <View style={styles.sightingFooter}>
+                  <IconSymbol name="chevron.right" size={16} color="#666" />
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
         </ThemedView>
       </ScrollView>
 
@@ -284,6 +362,15 @@ export default function SpotScreen() {
         onClose={handleCloseModal}
         onLogSighting={handleLogSighting}
         onEnterManually={handleEnterManually}
+      />
+
+      {/* Sighting Detail Modal */}
+      <SightingDetailModal
+        visible={showSightingDetail}
+        sighting={selectedSighting}
+        onClose={handleCloseSightingDetail}
+        onUpdate={handleUpdateSighting}
+        onDelete={handleDeleteSighting}
       />
     </ThemedView>
   );
@@ -352,6 +439,75 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     marginVertical: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  sightingHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  sightingName: {
+    flex: 1,
+    fontSize: 16,
+  },
+  sightingBadges: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  confidenceBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#9C27B0',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  confidenceText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  rarityBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFD700',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  rarityText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  sightingDescription: {
+    fontSize: 14,
+    opacity: 0.7,
+    marginTop: 8,
+    lineHeight: 18,
+  },
+  sightingFooter: {
+    marginLeft: 12,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 16,
+    opacity: 0.7,
+  },
+  emptySubtext: {
+    opacity: 0.5,
+    marginTop: 8,
+    textAlign: 'center',
   },
   sightingType: {
     opacity: 0.7,
