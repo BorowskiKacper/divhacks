@@ -39,7 +39,7 @@ export default function FeedScreen() {
       <ScrollView style={styles.feedContainer} showsVerticalScrollIndicator={false}>
         {sightings.length === 0 ? (
           <View style={styles.emptyState}>
-            <IconSymbol name="binoculars" size={64} color={primaryColor} />
+            <IconSymbol name="binoculars" size={64} color={secondaryColor} />
             <ThemedText style={styles.emptyText}>No sightings yet</ThemedText>
             <ThemedText style={styles.emptySubtext}>
               Be the first to spot an animal!

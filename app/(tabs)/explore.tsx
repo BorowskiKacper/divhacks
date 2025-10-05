@@ -9,8 +9,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useSightings } from '@/contexts/SightingsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { geminiService, AnimalDetectionResult } from '@/services/geminiService';
-import SightingDetailModal from '@/components/SightingDetailModal';
-import CreatureInfoModal from '@/components/CreatureInfoModal';
+import UnifiedSightingModal from '@/components/UnifiedSightingModal';
 
 export default function SpotScreen() {
   const [facing] = useState<CameraType>('back');
@@ -108,26 +107,27 @@ export default function SpotScreen() {
 
     } catch (error) {
       console.error('Error in takePicture:', error);
+      const errorObj = error as Error;
       console.error('Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
+        message: errorObj.message,
+        stack: errorObj.stack,
+        name: errorObj.name
       });
       setIsAnalyzing(false);
       
       let errorMessage = 'Failed to analyze the image. Please try again or enter manually.';
       
-      if (error.message.includes('timed out')) {
+      if (errorObj.message.includes('timed out')) {
         errorMessage = 'AI analysis took too long. Please try again or enter manually.';
-      } else if (error.message.includes('API key') || error.message.includes('API_KEY')) {
+      } else if (errorObj.message.includes('API key') || errorObj.message.includes('API_KEY')) {
         errorMessage = 'AI service configuration error. Please check your API key.';
-      } else if (error.message.includes('Failed to process image')) {
+      } else if (errorObj.message.includes('Failed to process image')) {
         errorMessage = 'Could not process the photo. Please try taking another picture.';
-      } else if (error.message.includes('Failed to analyze image with AI')) {
+      } else if (errorObj.message.includes('Failed to analyze image with AI')) {
         errorMessage = 'AI service is currently unavailable. Please try again later or enter manually.';
       }
       
-      Alert.alert('Analysis Error', `${errorMessage}\n\nError: ${error.message}`);
+      Alert.alert('Analysis Error', `${errorMessage}\n\nError: ${errorObj.message}`);
     }
   };
 
@@ -142,7 +142,7 @@ export default function SpotScreen() {
         },
         {
           text: 'Log It!',
-          onPress: (name) => {
+          onPress: (name?: string) => {
             if (name && name.trim()) {
               logSighting(name, location);
             }
@@ -167,7 +167,7 @@ export default function SpotScreen() {
         type: animalType,
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
-      }, aiResult, undefined); // Pass AI result if available
+      }, aiResult || undefined, undefined); // Pass AI result if available
       
       Alert.alert('Success!', `${name} logged at your current location and added to the map!`);
       setShowCamera(false);
@@ -270,10 +270,11 @@ export default function SpotScreen() {
           </TouchableOpacity>
         </View>
         
-        {/* Creature Info Modal - also show in camera view */}
-        <CreatureInfoModal
+        {/* Unified Modal - Detection Mode */}
+        <UnifiedSightingModal
           visible={showCreatureModal}
-          creature={aiResult}
+          mode="detection"
+          data={aiResult}
           onClose={handleCloseModal}
           onLogSighting={handleLogSighting}
           onEnterManually={handleEnterManually}
@@ -357,22 +358,22 @@ export default function SpotScreen() {
         </ThemedView>
       </ScrollView>
 
-      {/* Creature Info Modal */}
-      <CreatureInfoModal
+      {/* Unified Modal - Detection Mode */}
+      <UnifiedSightingModal
         visible={showCreatureModal}
-        creature={aiResult}
+        mode="detection"
+        data={aiResult}
         onClose={handleCloseModal}
         onLogSighting={handleLogSighting}
         onEnterManually={handleEnterManually}
       />
 
-      {/* Sighting Detail Modal */}
-      <SightingDetailModal
+      {/* Unified Modal - View Mode */}
+      <UnifiedSightingModal
         visible={showSightingDetail}
-        sighting={selectedSighting}
+        mode="view"
+        data={selectedSighting}
         onClose={handleCloseSightingDetail}
-        onUpdate={handleUpdateSighting}
-        onDelete={handleDeleteSighting}
       />
     </ThemedView>
   );
