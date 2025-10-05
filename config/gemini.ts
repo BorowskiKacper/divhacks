@@ -2,13 +2,21 @@
 // Get your API key from: https://makersuite.google.com/app/apikey
 
 export const GEMINI_CONFIG = {
-  // Replace with your actual API key
-  API_KEY: 'AIzaSyB6Pe8lI5G0jfNP3TxoQoCqbz6xzOhhKV0',
+  // Fallback API key (replace with your actual key if not using .env)
+  API_KEY: 'GEMINI-KEY',
   
-  // You can also set this as an environment variable
-  // EXPO_PUBLIC_GEMINI_API_KEY in your .env file
+  // Get API key from environment variable or fallback to API_KEY
   getApiKey: () => {
-    return process.env.EXPO_PUBLIC_GEMINI_API_KEY || GEMINI_CONFIG.API_KEY;
+    // For Expo, use EXPO_PUBLIC_ prefix to make env vars accessible in client
+    const envKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+    
+    if (envKey && envKey !== 'your_gemini_api_key_here') {
+      console.log('Using API key from environment variable');
+      return envKey;
+    }
+    
+    console.log('Using fallback API key from config');
+    return GEMINI_CONFIG.API_KEY;
   }
 };
 

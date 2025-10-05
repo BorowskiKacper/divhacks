@@ -79,11 +79,9 @@ export default function SpotScreen() {
       if (aiResult.isAnimal && aiResult.confidence > 30) {
         // AI detected a creature with reasonable confidence
         console.log('Setting showCreatureModal to true');
+        console.log('Modal should show with creature:', aiResult.name);
         setShowCreatureModal(true);
       } else {
-        // TEMPORARY: Force show modal for testing
-        console.log('Forcing modal to show for testing');
-        setShowCreatureModal(true);
         // AI didn't detect a creature or confidence is too low
         Alert.alert(
           'No Creature Detected',
@@ -233,6 +231,15 @@ export default function SpotScreen() {
             <IconSymbol name="xmark" size={30} color="white" />
           </TouchableOpacity>
         </View>
+        
+        {/* Creature Info Modal - also show in camera view */}
+        <CreatureInfoModal
+          visible={showCreatureModal}
+          creature={aiResult}
+          onClose={handleCloseModal}
+          onLogSighting={handleLogSighting}
+          onEnterManually={handleEnterManually}
+        />
       </View>
     );
   }
@@ -255,25 +262,6 @@ export default function SpotScreen() {
           <ThemedText style={styles.cameraButtonText}>Spot an Animal</ThemedText>
         </TouchableOpacity>
 
-        {/* DEBUG: Test Modal Button */}
-        <TouchableOpacity 
-          style={[styles.cameraButton, { backgroundColor: '#FF9800' }]}
-          onPress={() => {
-            console.log('DEBUG: Testing modal');
-            setAiResult({
-              name: 'Test Bird',
-              confidence: 85,
-              creatureType: 'Bird',
-              keyCharacteristics: 'Red plumage, distinctive crest',
-              rarity: 'Commonly found in the area',
-              isAnimal: true
-            });
-            setShowCreatureModal(true);
-          }}
-        >
-          <IconSymbol name="sparkles" size={40} color="white" />
-          <ThemedText style={styles.cameraButtonText}>Test Modal</ThemedText>
-        </TouchableOpacity>
 
         <ThemedView style={styles.section}>
           <ThemedText type="subtitle">Your Recent Sightings</ThemedText>

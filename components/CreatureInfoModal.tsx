@@ -31,6 +31,11 @@ export default function CreatureInfoModal({
 }: CreatureInfoModalProps) {
   console.log('CreatureInfoModal render:', { visible, creature: creature?.name });
   
+  if (!visible) {
+    console.log('Modal not visible, returning null');
+    return null;
+  }
+  
   if (!creature) {
     console.log('No creature data, returning null');
     return null;
@@ -75,7 +80,7 @@ export default function CreatureInfoModal({
             {/* Header */}
             <View style={styles.header}>
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                <IconSymbol name="xmark" size={24} color="#666" />
+                <IconSymbol name="xmark" size={24} color="#2d2d2d" />
               </TouchableOpacity>
               <ThemedText type="title" style={styles.title}>
                 Creature Detected! 🦋
@@ -217,7 +222,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   confidenceText: {
-    color: '#4CAF50',
+    color: '#2d5a2d',
     fontWeight: 'bold',
     marginLeft: 8,
   },
@@ -232,11 +237,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 4,
-    color: '#333',
+    color: '#1a1a1a',
   },
   value: {
     fontSize: 16,
-    color: '#666',
+    color: '#2d2d2d',
     lineHeight: 22,
   },
   rarityContainer: {
@@ -250,7 +255,7 @@ const styles = StyleSheet.create({
   },
   scientificName: {
     fontSize: 16,
-    color: '#666',
+    color: '#2d2d2d',
     fontStyle: 'italic',
   },
   descriptionContainer: {
@@ -258,7 +263,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontSize: 14,
-    color: '#666',
+    color: '#2d2d2d',
     lineHeight: 20,
     fontStyle: 'italic',
   },
@@ -299,7 +304,7 @@ const styles = StyleSheet.create({
     borderColor: '#4CAF50',
   },
   manualButtonText: {
-    color: '#4CAF50',
+    color: '#2d5a2d',
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
